@@ -1,0 +1,54 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~ module Elasticsearch
+
+# An example controller showing a sample home page
+GET     /                               controllers.HomeController.index
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
+
+
+
+# getting all documents
+GET     /getAll                         controllers.playWithElastic.getAll
+
+# getting a document on accepting id as argument.
+GET     /getDocument/:id                controllers.playWithElastic.getDocument(id: String)
+
+
+
+#updating previously existed document.. if not present then inserting it as a new doc
+POST     /updatedDoc/:id                controllers.playWithElastic.updateDoc(id:String)
+
+# indexing(inserting) a new doc
+PUT     /insertDoc/:id                  controllers.playWithElastic.insertDoc(id: String)
+
+
+
+
+# getting document for non-nested fields on accepting only query as argument.
+GET     /searchDoc/:query                  controllers.playWithElastic.searchDoc(query:String)
+
+# getting document for non nested-fields on accepting field and query as argument.
+GET     /searchDocNonNested/:field/:query           controllers.playWithElastic.searchDocNonNested(field:String, query:String)
+
+# getting document for nested-fields on accepting field and query as argument.
+GET     /searchDocNested/:field/:query              controllers.playWithElastic.searchDocNested(field:String, query:String)
+
+
+
+# getting all unique terms in as specific non nested field
+GET     /getAggNonNested/:field             controllers.autocomplete.getAggNonNested(field:String)
+
+# getting all unique terms in as specific nested field
+GET     /getAggNested/:field                controllers.autocomplete.getAggNested(field:String)
+
+
+
+
+# getting all unique search terms in a non nested field
+GET     /getUniqueSearchNonNested/:field/:query         controllers.autocomplete.getUniqueSearchNonNested(field:String , query:String)
+
+# getting all unique search terms in a nested field
+GET     /getUniqueSearchNested/:field/:query         controllers.autocomplete.getUniqueSearchNested(field:String , query:String)
