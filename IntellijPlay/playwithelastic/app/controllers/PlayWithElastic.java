@@ -1,5 +1,12 @@
 package controllers;
-import com.fasterxml.jackson.databind.JsonNode;
+import static java.util.Collections.singletonMap;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.http.HttpHost;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.ElasticsearchException;
@@ -18,7 +25,6 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.get.GetResult;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -29,19 +35,23 @@ import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import play.libs.Json;
-import play.mvc.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.saurav.utils.JsonParserUtils;
+import com.saurav.vos.TestVO;
 
-import static java.util.Collections.singletonMap;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
 
-public class playWithElastic extends Controller
+public class PlayWithElastic extends Controller {
+	
+	private static final Logger logger = LoggerFactory.getLogger(JsonParserUtils.class);
+	private static final String APPLICATION_JSON = "application/json";
 
-    // check for version conflict errors and what to be returned in catch.
-    //matchQueryBuilder.fuzziness(Fuzziness.AUTO).maxExpansions(10);// for fuzziness
-{
+	
     public RestHighLevelClient getRestclient()
     {
 
@@ -58,6 +68,16 @@ public class playWithElastic extends Controller
 //    builder.setStrictDepreciationMode(true);
 
 
+    
+    public Result testApi(Http.Request request) {
+    	JsonNode asJson = request.body().asJson();
+    	TestVO fromJson = JsonParserUtils.fromJson(asJson, TestVO.class);
+    	logger.info("Object ", fromJson);
+    	return ok(JsonParserUtils.toJson(fromJson)).as(APPLICATION_JSON); 
+		
+	}
+    
+    
 
     //you can uncomment the  sourceBuilder if we want particular fields/all fields in the results.
     public Result searchDocNonNested(String field, String query)// for non nested fields

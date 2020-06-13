@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class autocomplete extends playWithElastic
+public class autocomplete extends PlayWithElastic
 {
 //    @Override
 //    public RestHighLevelClient getRestclient() {

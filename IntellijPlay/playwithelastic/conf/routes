@@ -3,7 +3,7 @@
 # ~~~~ module Elasticsearch
 
 # An example controller showing a sample home page
-GET     /                               controllers.HomeController.index
+GET     /                               controllers.HomeController.index()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
@@ -11,30 +11,30 @@ GET     /assets/*file                   controllers.Assets.versioned(path="/publ
 
 
 # getting all documents
-GET     /getAll                         controllers.playWithElastic.getAll
+#GET     /getAll                         controllers.PlayWithElastic.getAll()
 
 # getting a document on accepting id as argument.
-GET     /getDocument/:id                controllers.playWithElastic.getDocument(id: String)
+GET     /getDocument/:id                controllers.PlayWithElastic.getDocument(id: String)
 
 
 
 #updating previously existed document.. if not present then inserting it as a new doc
-POST     /updatedDoc/:id                controllers.playWithElastic.updateDoc(id:String)
+POST     /updatedDoc/:id                controllers.PlayWithElastic.updateDoc(id:String)
 
 # indexing(inserting) a new doc
-PUT     /insertDoc/:id                  controllers.playWithElastic.insertDoc(id: String)
+PUT     /insertDoc/:id                  controllers.PlayWithElastic.insertDoc(id: String)
 
 
 
 
 # getting document for non-nested fields on accepting only query as argument.
-GET     /searchDoc/:query                  controllers.playWithElastic.searchDoc(query:String)
+GET     /searchDoc/:query                  controllers.PlayWithElastic.searchDoc(query:String)
 
 # getting document for non nested-fields on accepting field and query as argument.
-GET     /searchDocNonNested/:field/:query           controllers.playWithElastic.searchDocNonNested(field:String, query:String)
+GET     /searchDocNonNested/:field/:query           controllers.PlayWithElastic.searchDocNonNested(field:String, query:String)
 
 # getting document for nested-fields on accepting field and query as argument.
-GET     /searchDocNested/:field/:query              controllers.playWithElastic.searchDocNested(field:String, query:String)
+GET     /searchDocNested/:field/:query              controllers.PlayWithElastic.searchDocNested(field:String, query:String)
 
 
 
@@ -52,3 +52,8 @@ GET     /getUniqueSearchNonNested/:field/:query         controllers.autocomplete
 
 # getting all unique search terms in a nested field
 GET     /getUniqueSearchNested/:field/:query         controllers.autocomplete.getUniqueSearchNested(field:String , query:String)
+
+
+
+
+POST /test/api                           controllers.PlayWithElastic.testApi(request: Request)
