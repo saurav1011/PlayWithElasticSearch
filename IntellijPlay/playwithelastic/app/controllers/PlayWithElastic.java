@@ -1,17 +1,16 @@
 package controllers;
-import static java.util.Collections.singletonMap;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
-import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -23,15 +22,11 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -40,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.saurav.utils.JsonParserUtils;
-import com.saurav.vos.TestVO;
 
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -49,7 +43,7 @@ import play.mvc.Result;
 public class PlayWithElastic extends Controller {
 	
 	private static final Logger logger = LoggerFactory.getLogger(JsonParserUtils.class);
-	private static final String APPLICATION_JSON = "application/json";
+//	private static final String APPLICATION_JSON = "application/json";
 
 	
     public RestHighLevelClient getRestclient()
@@ -63,116 +57,24 @@ public class PlayWithElastic extends Controller {
 
 
 
-//    client.close();
-//    final RestClient builder= RestClient.builder(HttpHost);
-//    builder.setStrictDepreciationMode(true);
+//    client.close();//in every method
 
 
     
-    public Result testApi(Http.Request request) {
-    	JsonNode asJson = request.body().asJson();
-    	TestVO fromJson = JsonParserUtils.fromJson(asJson, TestVO.class);
-    	logger.info("Object ", fromJson);
-    	return ok(JsonParserUtils.toJson(fromJson)).as(APPLICATION_JSON); 
-		
-	}
-    
-    
-
-    //you can uncomment the  sourceBuilder if we want particular fields/all fields in the results.
-    public Result searchDocNonNested(String field, String query)// for non nested fields
+    //getting a document by providing a query .. in nonNested field...
+    public  Result searchDoc(Http.Request request)
     {
-        ArrayList<String> list = new ArrayList<>();
-//        ArrayList<JsonNode> list=new ArrayList<>(); // might be you need it
-        SearchRequest searchRequest = new SearchRequest("garments");
-        //searching in only garments index.. if no argument.. then search would be against all documents
-        ///searchRequest enables us to generate a search request from doc,agg,etc.
-
-        QueryBuilder queryBuilder = QueryBuilders.matchQuery(field,query).operator(Operator.AND);
-        //QueryBuilder enables you to select data from the database based on one or more conditions
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(queryBuilder).size(100);
-//        sourceBuilder.fetchSource(field,null).query(queryBuilder).size(100);
-//        searchSourceBuilder.fetchSource("title",null).query(queryBuilder).size(100);
-        searchRequest.source(sourceBuilder);
-        try
-        {
-            SearchResponse searchResponse = getRestclient().search(searchRequest, RequestOptions.DEFAULT);//try asynch also
-            //it executes the search request through REST client
-            SearchHits hits = searchResponse.getHits();// all hits
-            SearchHit[] searchHits= hits.getHits();//document hits....name of SearchHit array(just like String array) is searchHits
-
-            for (SearchHit hit: searchHits)
-            {
-//                String document=hit.getSourceAsMap().toString(); // output in key value format
-                String document=hit.getSourceAsString(); // output in json format
-//                Map<String,Object> map= hit.getSourceAsMap();
-//                String value = map.get(field).toString(); //output only value of the field on which query is done
-
-                list.add(document);
-//                list.add(value);
-            }
-//            return ok(searchResponse.toString()); it returns response as well as documents.(includes shard failed,hits,etc)
-            if(list.size()!=0)
-            {
-                return ok(list.toString());
-            }
-
-        } catch (IOException e)//version conflicts
-        {
-            e.printStackTrace();
-
-        }
-        return internalServerError("OOPS! No documents Found! Please try with different keywords");
-//        return notFound();
-    }
-
-
-    //you can uncomment the  sourceBuilder if we want particular fields/all fields in the results.
-    public Result searchDocNested(String field, String query)
-    {
-        ArrayList<String> list=new ArrayList<>();
-        SearchRequest searchRequest =new SearchRequest("garments");
-        QueryBuilder queryBuilder = QueryBuilders.nestedQuery(field, QueryBuilders.matchQuery(field.concat(".name"),query).operator(Operator.AND), ScoreMode.Avg);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(queryBuilder).size(100);
-//        searchSourceBuilder.fetchSource(field,null).query(queryBuilder).size(100);
-//        searchSourceBuilder.fetchSource("title",null).query(queryBuilder).size(100);
-        searchRequest.source(searchSourceBuilder);
-        try
-        {
-            SearchResponse searchResponse = getRestclient().search(searchRequest,RequestOptions.DEFAULT);
-            SearchHits searchHits = searchResponse.getHits();
-            SearchHit [] hits = searchHits.getHits();
-            for(SearchHit hit: hits)
-            {
-//                String document=hit.getSourceAsMap().toString(); // output in key value format
-                String document= hit.getSourceAsString();// output in json format
-                list.add(document);
-            }
-            if(list.size()!=0)
-            {
-                return ok(list.toString());
-            }
-
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return internalServerError("OOPS! No documents Found! Please try with different keywords");
-        //return notFound();
-    }
-
-
-    //getting a document by providing a query .. not requirement of field...
-    public  Result searchDoc(String query)
-    {
+        JsonNode jsonNode = request.body().asJson();
+        searchDocRequest searchDocRequest = JsonParserUtils.fromJson(jsonNode, searchDocRequest.class);
+        String query = searchDocRequest.getQuery();
+        int from = searchDocRequest.getFrom();
+        // if page no. is starting from 0.. then from= from*size.... else if page no. is starting from 1 then from=[(from-1)*size].
+        int size= searchDocRequest.getSize();
         List<String> list = new ArrayList<>();
         SearchRequest searchRequest =new SearchRequest("garments");
         QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).defaultOperator(Operator.AND);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(queryBuilders).size(100);
+        searchSourceBuilder.query(queryBuilders).from(from*size).size(size);///PAGINATION // limitation of from+size to 10000//
         searchRequest.source(searchSourceBuilder);
         try
         {
@@ -184,6 +86,7 @@ public class PlayWithElastic extends Controller {
                 String document =  hit.getSourceAsString();
                 list.add(document);
             }
+            getRestclient().close();
             if(list.size()!=0)
             {
                 return ok(list.toString());
@@ -197,13 +100,15 @@ public class PlayWithElastic extends Controller {
     }
 
 
+
+
     public Result getAll() throws IOException
     {
         List<String> list = new ArrayList<>();
         SearchRequest searchRequest = new SearchRequest("garments");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder queryBuilder= QueryBuilders.matchAllQuery();
-        searchSourceBuilder.query(queryBuilder).size(100);
+        searchSourceBuilder.query(queryBuilder).size(20);
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = getRestclient().search(searchRequest, RequestOptions.DEFAULT);// the exception not thrown since there is no match query to be provided by the user
         for(SearchHit hit : searchResponse.getHits().getHits())
@@ -215,7 +120,9 @@ public class PlayWithElastic extends Controller {
             list.add(document);
 //            list.add(value);
         }
+        getRestclient().close();
         return ok(list.toString());
+
     }
 
 
@@ -224,82 +131,149 @@ public class PlayWithElastic extends Controller {
 
 
 
-    public  Result getDocument(String id) throws IOException
+    public  Result getDocument(Http.Request request) throws IOException
     {
-//        ObjectMapper objectMapper=new ObjectMapper();
-
+        JsonNode jsonNode = request.body().asJson();
+        getDocumentRequest getDocumentRequest = JsonParserUtils.fromJson(jsonNode, controllers.getDocumentRequest.class);
+        String id= getDocumentRequest.getId();
         GetRequest getRequest = new GetRequest("garments",id);
         GetResponse getResponse = getRestclient().get(getRequest,RequestOptions.DEFAULT);
 
-        return ok(getResponse.getSourceAsBytes());
+        if(getResponse.getSourceAsBytes()!=null)
+        {
+            return ok(getResponse.getSourceAsBytes());
+        }
+        getRestclient().close();
+        return ok("{\"reason\":\"No Document found with id: " + id + " \"}");
     }
 
 
 
 
-    // also there is updateByQuery API which allows to update docs which match the query provided(this feature is optional).
-    public Result updateDoc(String id)
+
+
+    //this API method only updates... insertion disabled.
+    public Result updateDoc(Http.Request request) throws IOException
     {
+        JsonNode jsonNode = request.body().asJson();
+        searchProductVO searchProductVO = JsonParserUtils.fromJson(jsonNode, searchProductVO.class);
+        String id= searchProductVO.getId();
+        Field[] Fields = searchProductVO.class.getDeclaredFields();
+        Map<String, Object> jsonMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();//we need that to convert our product/searchProductVO Object to a Map object
+        for(Field field: Fields)
+        {
+            try
+            {
+                String fieldName = field.getName();
+                String methodName = "get"+fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                Method getNameMethod = searchProductVO.getClass().getMethod(methodName);// getFieldName
+                Object returnValue = getNameMethod.invoke(searchProductVO);///fieldname pe getter lagake ke uska value returned
+                if (returnValue!=null)
+                {
+                    if (fieldName.equals("id"))
+                    {
+                        continue;
+                    }
+                    if (fieldName.equals("searchTerms"))
+                    {
+                        List<nestedFields> list = new ArrayList<>();
+                        String searchTerms = searchProductVO.getSearchTerms();
+                        int length = searchTerms.length();
+                        ArrayList<String> name = new ArrayList<>();
+                        StringBuilder temp = new StringBuilder();
+                        for (int i = 0; i < length; i++)
+                        {
+                            if (searchTerms.charAt(i) == ',')
+                            {
+                                name.add(temp.toString());
+                                temp = new StringBuilder();
+                                continue;
+                            }
+                            if (i == length - 1)
+                            {
+                                temp.append(searchTerms.charAt(i));
+                                name.add(temp.toString());
+                            } else temp.append(searchTerms.charAt(i));
+                        }
+                        for (String s : name)
+                        {
+                            nestedFields nestedFields = new nestedFields();
+                            nestedFields.setName(s);
+                            list.add(nestedFields);
+                        }
+                        List<Map<String,Object>> listMap = new ArrayList<>();
+                        for(nestedFields val:list)
+                        {
+                            // here  i can also use "name" as key and val.getName() as value and put it inside map.. and add that map to listMap
+                            Map<String,Object> map= objectMapper.convertValue(val,Map.class);
+                            listMap.add(map);
+                        }
+                        jsonMap.put(fieldName,listMap);
+                        continue;
+                    }
+                    if (fieldName.equals("pngImages"))
+                    {
+                        List<Image> list=searchProductVO.getPngImages();
+                        List<Map<String,Object>> listMap = new ArrayList<>();
+                        for(Image val:list)
+                        {
+                            Map<String,Object> map = objectMapper.convertValue(val,Map.class);
+                            listMap.add(map);
+                        }
+                        jsonMap.put(fieldName,listMap);
+                        continue;
+                    }
+                    if (fieldName.equals("variantsVOs"))
+                    {
+                        List<SearchedVariantsVO> list= searchProductVO.getVariantsVOs();
+                        List<Map<String,Object>> listMap = new ArrayList<>();
+                        for(SearchedVariantsVO val: list)
+                        {
+                            Map<String,Object> map= objectMapper.convertValue(val,Map.class);
+                            listMap.add(map);
+                        }
+                        jsonMap.put(fieldName,listMap);
+                        continue;
+                    }
+                    jsonMap.put(fieldName,returnValue);
+                }
+            }
+            catch (Exception e) {
+//                System.out.println(e.getMessage());
+            }
+        }
+
         UpdateRequest updateRequest = new UpdateRequest("garments",id);
 
-        //update can be done in two ways:
-
-        //using script
-        //replacement of a value.
-        Map<String, Object> parameters = singletonMap("field1","value1");// field to be updated and it's value to be replaced
-        Script inline = new Script(ScriptType.INLINE, "painless",
-                "ctx._source.field += params.field", parameters);// field to be updated
-        //use upsert in case the document doesn't already exist... a new document will be indexed.
-        updateRequest.script(inline).scriptedUpsert(true);// setting scriptedUpsert true will make a new doc if this doc is not existed previously
-
-
-
-        //partial documenting can also be done.
-        //using partial document as a map.(can be done in various ways rather than as a map(see XContentBuilder and object-key pairs))
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("field1", "value1");
-        jsonMap.put("field2", "value2");
-        updateRequest.doc(jsonMap).docAsUpsert(true);// setting docAsUpsert true will make a new doc if this doc is not existed previously
-
-
-
+        updateRequest.doc(jsonMap).docAsUpsert(false);
+        logger.info("Object ", searchProductVO);
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setElasticId(id);
         try
         {
             UpdateResponse updateResponse = getRestclient().update(updateRequest,RequestOptions.DEFAULT);
 
-            if (updateResponse.getResult() == DocWriteResponse.Result.CREATED)//Handle the case where the document was created for the first time (upsert)
+            if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED)//Handle the case where the document was created for the first time (upsert)
             {
-                return ok("No Updates! A new document created!");
-            }
-            else if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED)//Handle the case where the document was updated
-            {
-                return ok("Document updated!");
-            }
-            else if (updateResponse.getResult() == DocWriteResponse.Result.DELETED)//Handle the case where the document was deleted
-            {
-                return ok("Document deleted");
+                responseBody.setIsSuccessful("true");
+                return ok(JsonParserUtils.toJson(responseBody));
             }
             else if (updateResponse.getResult() == DocWriteResponse.Result.NOOP)//Handle the case where the document was not impacted by the update,
                 // ie no operation (noop) was executed on the document
             {
-                return ok("No Operation on the document!" );
+                responseBody.setIsSuccessful("false");
+                return ok(JsonParserUtils.toJson(responseBody) + "{\"reason\":\"Document with id: " + id + " is upto date hence No Operation on the document\"}");
             }
+            getRestclient().close();
 
-            // decide if you want to retrieve the updated results.// do you want to display the source/fields and values of updates
-            //enable the fetchSource before this
-//            GetResult result = updateResponse.getGetResult();
-//            if (result.isExists()) {
-//                String sourceAsString = result.sourceAsString();
-//                Map<String, Object> sourceAsMap = result.sourceAsMap();
-//                byte[] sourceAsBytes = result.source();
-//            } else {
-//
-//            }
+        } catch (IOException e)
+        {
+            responseBody.setIsSuccessful("false");
+            return ok(JsonParserUtils.toJson(responseBody) + ",{\"reason\":\"No Document found with id: " + id + " \"}");
 
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return ok();
+        return ok(getRestclient().update(updateRequest,RequestOptions.DEFAULT).toString());// no use
 
     }
     
@@ -307,61 +281,126 @@ public class PlayWithElastic extends Controller {
 
 
 
-    public Result insertDoc(String id) throws IOException
-    {
-        // see the optimistic control...
-        // if specific argument is detected then only doc will be inserted else their will be exception.
-        // (if the last modification to the document was assigned the sequence number and primary term specified)
-        //use create/id instead of _doc/id (becoz create denies the request if document is already present)
-        IndexRequest indexRequest = new IndexRequest("garments");
 
-        //use a type to form a json doc(either use string, map,Xcontentbulder, or key-object pair)
-        ///i am using Xcontentbuilder
-        XContentBuilder builder = XContentFactory.jsonBuilder();
-        builder.startObject();
+
+// only for adding new document..(no updates on document)
+    public Result insertDoc(Http.Request request) throws IOException
+    {
+        // see the optimistic control...if specific argument is detected then only doc will be inserted else their will be exception.
+        // (if the last modification to the document was assigned the sequence number and primary term specified)
+        JsonNode jsonNode = request.body().asJson();
+        searchProductVO searchProductVO = JsonParserUtils.fromJson(jsonNode, searchProductVO.class);
+        String id= searchProductVO.getId();
+        Field[] Fields = searchProductVO.class.getDeclaredFields();
+        Map<String, Object> jsonMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();//we need that to convert our product/searchProductVO Object to a Map object
+        for(Field field: Fields)
         {
-            builder.field("user", "kimchy");
-            builder.field("message", "trying out Elasticsearch");
+            try
+            {
+                String fieldName = field.getName();
+                String methodName = "get"+fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                Method getNameMethod = searchProductVO.getClass().getMethod(methodName);// getFieldName
+                Object returnValue = getNameMethod.invoke(searchProductVO);///fieldname pe getter lagake ke uska value returned
+                if (returnValue!=null)
+                {
+                    if (fieldName.equals("id"))
+                    {
+                        continue;
+                    }
+                    if (fieldName.equals("searchTerms"))
+                    {
+                        List<nestedFields> list = new ArrayList<>();
+                        String searchTerms = searchProductVO.getSearchTerms();
+                        int length = searchTerms.length();
+                        ArrayList<String> name = new ArrayList<>();
+                        StringBuilder temp = new StringBuilder();
+                        for (int i = 0; i < length; i++)
+                        {
+                            if (searchTerms.charAt(i) == ',') {
+                                name.add(temp.toString());
+                                temp = new StringBuilder();
+                                continue;
+                            }
+                            if (i == length - 1) {
+                                temp.append(searchTerms.charAt(i));
+                                name.add(temp.toString());
+                            } else temp.append(searchTerms.charAt(i));
+                        }
+                        for (String s : name) {
+                            nestedFields nestedFields = new nestedFields();
+                            nestedFields.setName(s);
+                            list.add(nestedFields);
+                        }
+                        List<Map<String,Object>> listMap = new ArrayList<>();
+                        for(nestedFields val:list)
+                        {
+                            // here  i can also use "name" as key and val.getName() as value and put it inside map.. and add that map to listMap
+                            Map<String,Object> map= objectMapper.convertValue(val,Map.class);
+                            listMap.add(map);
+                        }
+                        jsonMap.put(fieldName,listMap);
+                        continue;
+                    }
+                    if (fieldName.equals("pngImages"))
+                    {
+                        List<Image> list=searchProductVO.getPngImages();
+                        List<Map<String,Object>> listMap = new ArrayList<>();
+                        for(Image val:list)
+                        {
+                            Map<String,Object> map = objectMapper.convertValue(val,Map.class);
+                            listMap.add(map);
+                        }
+                        jsonMap.put(fieldName,listMap);
+                        continue;
+                    }
+                    if (fieldName.equals("variantsVOs"))
+                    {
+                        List<SearchedVariantsVO> list= searchProductVO.getVariantsVOs();
+                        List<Map<String,Object>> listMap = new ArrayList<>();
+                        for(SearchedVariantsVO val: list)
+                        {
+                            Map<String,Object> map= objectMapper.convertValue(val,Map.class);
+                            listMap.add(map);
+                        }
+                        jsonMap.put(fieldName,listMap);
+                        continue;
+                    }
+                    jsonMap.put(fieldName,returnValue);
+                }
+            }
+            catch (Exception e) {
+//                System.out.println(e.getMessage());
+            }
         }
-        builder.endObject();
-        indexRequest.id(id).source(builder).opType(DocWriteRequest.OpType.CREATE);
+        IndexRequest indexRequest =new IndexRequest("garments");
+        //use a type to form a json doc(either use string, map,Xcontentbulder, or key-object pair)
+
+        indexRequest.id(id).source(jsonMap).opType(DocWriteRequest.OpType.CREATE);
+        logger.info("Object ", searchProductVO);
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setElasticId(id);
         //opType create enables us to create only.. if doc is present already then this request will not pass
         try
         {
             IndexResponse indexResponse = getRestclient().index(indexRequest,RequestOptions.DEFAULT);
-
-//            String index = indexResponse.getIndex();
-//            String id = indexResponse.getId();
-//
             if (indexResponse.getResult() == DocWriteResponse.Result.CREATED)
             {
-                return ok("A new document created!");
-            } else if (indexResponse.getResult() == DocWriteResponse.Result.UPDATED)// i have disabled this feature
-            {
-                return ok("No new Document created! Document updated");
+                responseBody.setIsSuccessful("true");
+                return ok(JsonParserUtils.toJson(responseBody));
             }
-//        ReplicationResponse.ShardInfo shardInfo = indexResponse.getShardInfo();
-//        if (shardInfo.getTotal() != shardInfo.getSuccessful()) { ///// Handle the situation where number of successful shards is less than total shards
-//
-//        }
-//        if (shardInfo.getFailed() > 0)
-//        {
-//            for (ReplicationResponse.ShardInfo.Failure failure :
-//                    shardInfo.getFailures())
-//                    {
-//                String reason = failure.reason();  ////Handle the potential failures
-//            }
-//        }
+            getRestclient().close();
         }
         catch (ElasticsearchException e)
         {
             if (e.status() == RestStatus.CONFLICT)
             {
-                return ok("version conflict error or Document with the same id existed");
+                responseBody.setIsSuccessful("false");
+                return ok(JsonParserUtils.toJson(responseBody)+ ",{\"reason\":\"Document with id: " + id + " already existing\"}");
             }
 
         }
-        return ok();
+        return ok(getRestclient().index(indexRequest,RequestOptions.DEFAULT).toString());
     }
 
 
@@ -371,42 +410,26 @@ public class PlayWithElastic extends Controller {
 
 
 
+    public Result deleteDocument(Http.Request request) throws IOException
+    {
+        JsonNode jsonNode = request.body().asJson();
+        controllers.DeleteRequest deleteRequest = JsonParserUtils.fromJson(jsonNode, controllers.DeleteRequest.class);
+        String id = deleteRequest.getElasticId();
+        DeleteRequest deleteRequest1 = new DeleteRequest("garments",id);
+        DeleteResponse deleteResponse = getRestclient().delete(deleteRequest1,RequestOptions.DEFAULT);
 
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setElasticId(id);
+        if(deleteResponse.getResult()==DocWriteResponse.Result.DELETED)
+        {
+            responseBody.setIsSuccessful("true");
+            return ok(JsonParserUtils.toJson(responseBody));
+        }
+        getRestclient().close();
+        responseBody.setIsSuccessful("false");
+        return ok(JsonParserUtils.toJson(responseBody)+ ",{\"reason\":\"Document with id: " + id + " not found\"}");
 
-//    public void bulkIndexing()
-//    {
-//        BulkRequest request=new BulkRequest();
-//        request.add(new IndexRequest("garments").id("").source(XContentType.JSON,"",""));
-//        try {
-//            client.bulk(request,RequestOptions.DEFAULT);//try asynch also
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    }
 
-
-
-
-
-//    public void deleteDocument(int id) throws IOException
-//    {
-//        DeleteRequest request = new DeleteRequest("garments",id);
-//        DeleteResponse deleteResponse = client.delete(request,RequestOptions.DEFAULT);
-//
-//    }
-
-
-
-
-
-//    public Result deleteProductIndex() throws Exception
-//    {
-//        try
-//        {
-//            client.indices().delete(new DeleteIndexRequest("garments"), RequestOptions.DEFAULT);//try asynch also
-//        }
-//        catch (ElasticsearchStatusException e) {
-//        }
-//    }
 
 }

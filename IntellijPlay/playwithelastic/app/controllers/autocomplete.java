@@ -1,5 +1,7 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.saurav.utils.JsonParserUtils;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -20,85 +22,13 @@ import java.util.List;
 
 public class autocomplete extends PlayWithElastic
 {
-//    @Override
-//    public RestHighLevelClient getRestclient() {
-//        return super.getRestclient();
-//    }
-//    RestHighLevelClient client= getRestclient();
-
-    public Result getAggNonNested(String field)
+    //for field title only
+    public Result getUniqueSearchNonNested(Http.Request request)
     {
-        ArrayList<String> list = new ArrayList<>();
-        SearchRequest searchRequest = new SearchRequest("garments");
-        TermsAggregationBuilder aggregationBuilder = AggregationBuilders.terms("All_Terms").field(field.concat(".keyword")).size(100);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.aggregation(aggregationBuilder).size(0);// i don't want docs. that's why size=0
-        searchRequest.source(searchSourceBuilder);
-        try
-        {
-
-            SearchResponse searchResponse = getRestclient().search(searchRequest, RequestOptions.DEFAULT);
-            Aggregations aggregations =searchResponse.getAggregations();
-            Terms terms = aggregations.get("All_Terms");
-            List<? extends Terms.Bucket> bucket= terms.getBuckets();
-            for(Terms.Bucket buck : bucket)
-            {
-                String value = buck.getKeyAsString();
-                list.add(value);
-            }
-
-
-            if(list.size()!=0)
-            {
-                return ok(list.toString());
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return internalServerError("OOPS! No Terms Found! Please try with different keywords");
-
-    }
-    public Result getAggNested(String field)
-    {
-
-        SearchRequest searchRequest = new SearchRequest("garments");
-        ArrayList<String> list = new ArrayList<>();
-        NestedAggregationBuilder nestedAggregationBuilder = AggregationBuilders.nested("All_Terms",field).
-                subAggregation(AggregationBuilders.terms("Terms_Agg").field(field.concat(".name.keyword")).size(500));
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.size(0).aggregation(nestedAggregationBuilder);
-        searchRequest.source(searchSourceBuilder);
-        try
-        {
-            SearchResponse searchResponse = getRestclient().search(searchRequest,RequestOptions.DEFAULT);
-            Aggregations aggregations = searchResponse.getAggregations();
-            Nested nested = aggregations.get("All_Terms");
-            Terms terms = nested.getAggregations().get("Terms_Agg");
-            List<? extends Terms.Bucket> bucket= terms.getBuckets();
-            for(Terms.Bucket buck : bucket)
-            {
-                String value = buck.getKeyAsString();
-                list.add(value);
-            }
-
-
-            if(list.size()!=0)
-            {
-                return ok(list.toString());
-            }
-
-
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        return internalServerError("OOPS! No Terms Found! Please try with different keywords");
-
-    }
-
-    public Result getUniqueSearchNonNested(String field, String query)
-    {
+        JsonNode jsonNode = request.body().asJson();
+        autocompleteRequest autocompleteRequest = JsonParserUtils.fromJson(jsonNode, autocompleteRequest.class);
+        String query = autocompleteRequest.getAutoCompleteQuery();
+        String field = "title";
         ArrayList<String> list = new ArrayList<>();
         SearchRequest searchRequest = new SearchRequest("garments");
         QueryBuilder queryBuilder = QueryBuilders.matchQuery(field,query).operator(Operator.AND);
@@ -106,6 +36,7 @@ public class autocomplete extends PlayWithElastic
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.size(0).aggregation(termsAggregationBuilder).query(queryBuilder);
         searchRequest.source(searchSourceBuilder);
+        autocompleteResponse autocompleteResponse = new autocompleteResponse();
         try
         {
             SearchResponse searchResponse = getRestclient().search(searchRequest,RequestOptions.DEFAULT);
@@ -117,27 +48,29 @@ public class autocomplete extends PlayWithElastic
                 String value = buck.getKeyAsString();
                 list.add(value);
             }
+            getRestclient().close();
 
-
-            if(list.size()!=0)
-            {
-                return ok(list.toString());
-            }
+            autocompleteResponse.setAutoCompleteResults(list);
+            return ok(JsonParserUtils.toJson(autocompleteResponse));
 
 
         } catch (IOException e)
         {
             e.printStackTrace();
         }
-        return internalServerError("OOPS! No Terms Found! Please try with different keywords");
+        return internalServerError("Internal Server Error!");
 
     }
 
-    //nested fields are indexed as separate documents.
-    public Result getUniqueSearchNested(String field, String query)
+    //nested fields are indexed as separate documents under their parent documents.
+    public Result getUniqueSearchNested(Http.Request request)
     {
+        JsonNode jsonNode = request.body().asJson();
+        autocompleteRequest autocompleteRequest = JsonParserUtils.fromJson(jsonNode, autocompleteRequest.class);
+        String query = autocompleteRequest.getAutoCompleteQuery();
+        String field = "searchTerms";
         SearchRequest searchRequest =new SearchRequest("garments");
-        ArrayList<String> list =new ArrayList<>();
+        List<String> list =new ArrayList<>();
         NestedAggregationBuilder nestedAggregationBuilder = AggregationBuilders.nested("Terms_Searching",field).
                 subAggregation(AggregationBuilders.
                 filter("select_filter",QueryBuilders.matchQuery(field.concat(".name"),query).operator(Operator.AND)).
@@ -145,6 +78,8 @@ public class autocomplete extends PlayWithElastic
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.size(0).aggregation(nestedAggregationBuilder);
         searchRequest.source(searchSourceBuilder);
+        autocompleteResponse autocompleteResponse = new autocompleteResponse();
+
         try
         {
             SearchResponse searchResponse = getRestclient().search(searchRequest,RequestOptions.DEFAULT);
@@ -158,15 +93,15 @@ public class autocomplete extends PlayWithElastic
                 String value= buck.getKeyAsString();
                 list.add(value);
             }
-            if(list.size()!=0)
-            {
-                return ok(list.toString());
-            }
+            getRestclient().close();
+            autocompleteResponse.setAutoCompleteResults(list);
+            return ok(JsonParserUtils.toJson(autocompleteResponse));
 
         } catch (IOException e) {
             e.printStackTrace();
+            return internalServerError("Internal Server Error!");
         }
-        return internalServerError("OOPS! No Terms Found! Please try with different keywords");
+
 
     }
 

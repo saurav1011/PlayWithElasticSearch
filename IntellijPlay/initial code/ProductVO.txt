@@ -1,0 +1,23 @@
+package controllers;
+
+public class ProductVO
+{
+    private String id;
+    private Product product;
+
+
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getId() {
+        return id;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+    public Product getProduct() {
+        return product;
+    }
+}
+

@@ -11,50 +11,38 @@ GET     /assets/*file                   controllers.Assets.versioned(path="/publ
 
 
 # getting all documents
-#GET     /getAll                         controllers.PlayWithElastic.getAll()
+GET     /getAll        controllers.PlayWithElastic.getAll
 
 # getting a document on accepting id as argument.
-GET     /getDocument/:id                controllers.PlayWithElastic.getDocument(id: String)
+GET     /getDocument               controllers.PlayWithElastic.getDocument(request: Request)
 
 
 
 #updating previously existed document.. if not present then inserting it as a new doc
-POST     /updatedDoc/:id                controllers.PlayWithElastic.updateDoc(id:String)
+POST     /updateDoc            controllers.PlayWithElastic.updateDoc(request: Request)
 
-# indexing(inserting) a new doc
-PUT     /insertDoc/:id                  controllers.PlayWithElastic.insertDoc(id: String)
+# indexing(inserting) a new doc.. no update
+PUT     /insertDoc                controllers.PlayWithElastic.insertDoc(request:Request)
 
 
 
 
 # getting document for non-nested fields on accepting only query as argument.
-GET     /searchDoc/:query                  controllers.PlayWithElastic.searchDoc(query:String)
+GET     /searchDoc                  controllers.PlayWithElastic.searchDoc(request: Request)
 
-# getting document for non nested-fields on accepting field and query as argument.
-GET     /searchDocNonNested/:field/:query           controllers.PlayWithElastic.searchDocNonNested(field:String, query:String)
-
-# getting document for nested-fields on accepting field and query as argument.
-GET     /searchDocNested/:field/:query              controllers.PlayWithElastic.searchDocNested(field:String, query:String)
-
-
-
-# getting all unique terms in as specific non nested field
-GET     /getAggNonNested/:field             controllers.autocomplete.getAggNonNested(field:String)
-
-# getting all unique terms in as specific nested field
-GET     /getAggNested/:field                controllers.autocomplete.getAggNested(field:String)
 
 
 
 
 # getting all unique search terms in a non nested field
-GET     /getUniqueSearchNonNested/:field/:query         controllers.autocomplete.getUniqueSearchNonNested(field:String , query:String)
+GET     /getUniqueSearchNonNested        controllers.autocomplete.getUniqueSearchNonNested(request: Request)
 
 # getting all unique search terms in a nested field
-GET     /getUniqueSearchNested/:field/:query         controllers.autocomplete.getUniqueSearchNested(field:String , query:String)
+GET     /getUniqueSearchNested              controllers.autocomplete.getUniqueSearchNested(request : Request)
 
 
 
 
-POST /test/api                           controllers.PlayWithElastic.testApi(request: Request)
+#delete a document with input id
+DELETE      /deleteDocument               controllers.autocomplete.deleteDocument(request : Request)
 
