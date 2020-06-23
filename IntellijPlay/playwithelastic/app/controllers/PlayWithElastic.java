@@ -3,9 +3,11 @@ package controllers;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpHost;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
@@ -20,8 +22,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -34,6 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.saurav.service.ElasticSearchInitService;
 import com.saurav.utils.JsonParserUtils;
 
 import play.mvc.Controller;
@@ -43,22 +46,14 @@ import play.mvc.Result;
 public class PlayWithElastic extends Controller {
 	
 	private static final Logger logger = LoggerFactory.getLogger(JsonParserUtils.class);
-//	private static final String APPLICATION_JSON = "application/json";
 
+	private ElasticSearchInitService elasticSearchInitService;
 	
-    public RestHighLevelClient getRestclient()
-    {
-
-       final RestHighLevelClient client = new RestHighLevelClient(
-                RestClient.builder(new HttpHost("localhost", 9200, "http"),
-                        new HttpHost("localhost", 9201, "http")));
-       return client;
-    }
-
-
-
-//    client.close();//in every method
-
+	
+	@Inject
+    public PlayWithElastic(ElasticSearchInitService elasticSearchInitService) {
+		this.elasticSearchInitService = elasticSearchInitService;
+	}
 
     
     //getting a document by providing a query .. in nonNested field...
@@ -75,10 +70,12 @@ public class PlayWithElastic extends Controller {
         QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).defaultOperator(Operator.AND);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(queryBuilders).from(from*size).size(size);///PAGINATION // limitation of from+size to 10000//
+        
+        //TODO are you sure from = from*size..?
         searchRequest.source(searchSourceBuilder);
         try
         {
-            SearchResponse searchResponse = getRestclient().search(searchRequest,RequestOptions.DEFAULT);
+            SearchResponse searchResponse = elasticSearchInitService.search(searchRequest,RequestOptions.DEFAULT);
             SearchHits searchHits = searchResponse.getHits();
             SearchHit[] hits = searchHits.getHits();
             for(SearchHit hit : hits)
@@ -86,7 +83,6 @@ public class PlayWithElastic extends Controller {
                 String document =  hit.getSourceAsString();
                 list.add(document);
             }
-            getRestclient().close();
             if(list.size()!=0)
             {
                 return ok(list.toString());
@@ -110,7 +106,7 @@ public class PlayWithElastic extends Controller {
         QueryBuilder queryBuilder= QueryBuilders.matchAllQuery();
         searchSourceBuilder.query(queryBuilder).size(20);
         searchRequest.source(searchSourceBuilder);
-        SearchResponse searchResponse = getRestclient().search(searchRequest, RequestOptions.DEFAULT);// the exception not thrown since there is no match query to be provided by the user
+        SearchResponse searchResponse = elasticSearchInitService.search(searchRequest, RequestOptions.DEFAULT);// the exception not thrown since there is no match query to be provided by the user
         for(SearchHit hit : searchResponse.getHits().getHits())
         {
 //                String document=hit.getSourceAsMap().toString(); // output in key value format
@@ -120,7 +116,8 @@ public class PlayWithElastic extends Controller {
             list.add(document);
 //            list.add(value);
         }
-        getRestclient().close();
+//        getRestclient().close();
+        //TODO you do not need to colse connection again and again
         return ok(list.toString());
 
     }
@@ -137,14 +134,14 @@ public class PlayWithElastic extends Controller {
         getDocumentRequest getDocumentRequest = JsonParserUtils.fromJson(jsonNode, controllers.getDocumentRequest.class);
         String id= getDocumentRequest.getId();
         GetRequest getRequest = new GetRequest("garments",id);
-        GetResponse getResponse = getRestclient().get(getRequest,RequestOptions.DEFAULT);
+        GetResponse getResponse = elasticSearchInitService.get(getRequest,RequestOptions.DEFAULT);
 
         if(getResponse.getSourceAsBytes()!=null)
         {
             return ok(getResponse.getSourceAsBytes());
         }
-        getRestclient().close();
         return ok("{\"reason\":\"No Document found with id: " + id + " \"}");
+        //TODO fix this
     }
 
 
@@ -177,33 +174,35 @@ public class PlayWithElastic extends Controller {
                     }
                     if (fieldName.equals("searchTerms"))
                     {
-                        List<nestedFields> list = new ArrayList<>();
+                        List<NestedFields> nestedFields = new ArrayList<>();
                         String searchTerms = searchProductVO.getSearchTerms();
-                        int length = searchTerms.length();
-                        ArrayList<String> name = new ArrayList<>();
-                        StringBuilder temp = new StringBuilder();
-                        for (int i = 0; i < length; i++)
-                        {
-                            if (searchTerms.charAt(i) == ',')
-                            {
-                                name.add(temp.toString());
-                                temp = new StringBuilder();
-                                continue;
-                            }
-                            if (i == length - 1)
-                            {
-                                temp.append(searchTerms.charAt(i));
-                                name.add(temp.toString());
-                            } else temp.append(searchTerms.charAt(i));
-                        }
+//                        int length = searchTerms.length();
+//                        ArrayList<String> name = new ArrayList<>();
+//                        StringBuilder temp = new StringBuilder();
+//                        for (int i = 0; i < length; i++)
+//                        {
+//                            if (searchTerms.charAt(i) == ',')
+//                            {
+//                                name.add(temp.toString());
+//                                temp = new StringBuilder();
+//                                continue;
+//                            }
+//                            if (i == length - 1)
+//                            {
+//                                temp.append(searchTerms.charAt(i));
+//                                name.add(temp.toString());
+//                            } else temp.append(searchTerms.charAt(i));
+//                        }
+                        
+                        String[] name = searchTerms.split(",");
                         for (String s : name)
                         {
-                            nestedFields nestedFields = new nestedFields();
-                            nestedFields.setName(s);
-                            list.add(nestedFields);
+                            NestedFields nestedField = new NestedFields();
+                            nestedField.setName(s);
+                            nestedFields.add(nestedField);
                         }
                         List<Map<String,Object>> listMap = new ArrayList<>();
-                        for(nestedFields val:list)
+                        for(NestedFields val:nestedFields)
                         {
                             // here  i can also use "name" as key and val.getName() as value and put it inside map.. and add that map to listMap
                             Map<String,Object> map= objectMapper.convertValue(val,Map.class);
@@ -236,6 +235,9 @@ public class PlayWithElastic extends Controller {
                         jsonMap.put(fieldName,listMap);
                         continue;
                     }
+                    
+                    //TODO you should write all the if statement in if-else-if not if
+                    
                     jsonMap.put(fieldName,returnValue);
                 }
             }
@@ -252,7 +254,7 @@ public class PlayWithElastic extends Controller {
         responseBody.setElasticId(id);
         try
         {
-            UpdateResponse updateResponse = getRestclient().update(updateRequest,RequestOptions.DEFAULT);
+            UpdateResponse updateResponse = elasticSearchInitService.(updateRequest,RequestOptions.DEFAULT);
 
             if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED)//Handle the case where the document was created for the first time (upsert)
             {
@@ -265,7 +267,7 @@ public class PlayWithElastic extends Controller {
                 responseBody.setIsSuccessful("false");
                 return ok(JsonParserUtils.toJson(responseBody) + "{\"reason\":\"Document with id: " + id + " is upto date hence No Operation on the document\"}");
             }
-            getRestclient().close();
+//            getRestclient().close();
 
         } catch (IOException e)
         {
@@ -274,6 +276,7 @@ public class PlayWithElastic extends Controller {
 
         }
         return ok(getRestclient().update(updateRequest,RequestOptions.DEFAULT).toString());// no use
+        //TODO fix this
 
     }
     
@@ -310,30 +313,40 @@ public class PlayWithElastic extends Controller {
                     }
                     if (fieldName.equals("searchTerms"))
                     {
-                        List<nestedFields> list = new ArrayList<>();
+                        List<NestedFields> nestedFields = new ArrayList<>();
                         String searchTerms = searchProductVO.getSearchTerms();
-                        int length = searchTerms.length();
-                        ArrayList<String> name = new ArrayList<>();
-                        StringBuilder temp = new StringBuilder();
-                        for (int i = 0; i < length; i++)
-                        {
-                            if (searchTerms.charAt(i) == ',') {
-                                name.add(temp.toString());
-                                temp = new StringBuilder();
-                                continue;
-                            }
-                            if (i == length - 1) {
-                                temp.append(searchTerms.charAt(i));
-                                name.add(temp.toString());
-                            } else temp.append(searchTerms.charAt(i));
-                        }
+                        
+//                        int length = searchTerms.length();
+//                        ArrayList<String> name = new ArrayList<>();
+//                        StringBuilder temp = new StringBuilder();
+                        
+//                        for (int i = 0; i < length; i++)
+//                        {
+//                            if (searchTerms.charAt(i) == ',') {
+//                                name.add(temp.toString());
+//                                temp = new StringBuilder();
+//                                continue;
+//                            }
+//                            
+//                            if (i == length - 1) {
+//                                temp.append(searchTerms.charAt(i));
+//                                name.add(temp.toString());
+//                            } else temp.append(searchTerms.charAt(i));
+//                        }
+                        
+                        
+                        String[] name = searchTerms.split(",");
+                        
+                        
                         for (String s : name) {
-                            nestedFields nestedFields = new nestedFields();
-                            nestedFields.setName(s);
-                            list.add(nestedFields);
+                            NestedFields nestedField = new NestedFields();
+                            nestedField.setName(s);
+                            nestedFields.add(nestedField);
                         }
+                        
+                        
                         List<Map<String,Object>> listMap = new ArrayList<>();
-                        for(nestedFields val:list)
+                        for(NestedFields val:nestedFields)
                         {
                             // here  i can also use "name" as key and val.getName() as value and put it inside map.. and add that map to listMap
                             Map<String,Object> map= objectMapper.convertValue(val,Map.class);
@@ -354,6 +367,7 @@ public class PlayWithElastic extends Controller {
                         jsonMap.put(fieldName,listMap);
                         continue;
                     }
+                    
                     if (fieldName.equals("variantsVOs"))
                     {
                         List<SearchedVariantsVO> list= searchProductVO.getVariantsVOs();
@@ -366,6 +380,11 @@ public class PlayWithElastic extends Controller {
                         jsonMap.put(fieldName,listMap);
                         continue;
                     }
+                    
+                    //TODO you should write all the if statement in if-else-if not if
+                    //TODO object mapper is fine for nested field but why are you putting all these in mapper. 
+                    //we can store all these field as string in elastic search
+                    
                     jsonMap.put(fieldName,returnValue);
                 }
             }
@@ -418,6 +437,8 @@ public class PlayWithElastic extends Controller {
         DeleteRequest deleteRequest1 = new DeleteRequest("garments",id);
         DeleteResponse deleteResponse = getRestclient().delete(deleteRequest1,RequestOptions.DEFAULT);
 
+        //TODO write delete function like i write for get update insert
+        
         ResponseBody responseBody = new ResponseBody();
         responseBody.setElasticId(id);
         if(deleteResponse.getResult()==DocWriteResponse.Result.DELETED)
@@ -426,8 +447,13 @@ public class PlayWithElastic extends Controller {
             return ok(JsonParserUtils.toJson(responseBody));
         }
         getRestclient().close();
+        //TODO do not read
         responseBody.setIsSuccessful("false");
         return ok(JsonParserUtils.toJson(responseBody)+ ",{\"reason\":\"Document with id: " + id + " not found\"}");
+        
+        //TODO do not write text outside object body. add one more fields message on response body and put it there like below
+        
+        // return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
 
     }
 
