@@ -11,7 +11,7 @@ GET     /assets/*file                   controllers.Assets.versioned(path="/publ
 
 
 # getting all documents
-GET     /getAll        controllers.PlayWithElastic.getAll
+GET     /getAllDocuments        controllers.PlayWithElastic.getAllDocuments
 
 # getting a document on accepting id as argument.
 GET     /getDocument               controllers.PlayWithElastic.getDocument(request: Request)
@@ -19,30 +19,33 @@ GET     /getDocument               controllers.PlayWithElastic.getDocument(reque
 
 
 #updating previously existed document.. if not present then inserting it as a new doc
-POST     /updateDoc            controllers.PlayWithElastic.updateDoc(request: Request)
+POST     /updateDocument            controllers.PlayWithElastic.updateDoc(request: Request)
 
 # indexing(inserting) a new doc.. no update
-PUT     /insertDoc                controllers.PlayWithElastic.insertDoc(request:Request)
+PUT     /insertDocument                controllers.PlayWithElastic.insertDoc(request:Request)
 
 
 
 
 # getting document for non-nested fields on accepting only query as argument.
-GET     /searchDoc                  controllers.PlayWithElastic.searchDoc(request: Request)
+GET     /searchDocument                  controllers.PlayWithElastic.searchDocument(request: Request)
+
+# creating index
+#PUT     /createIndex                controllers.IndexCreater.createIndex.createIndexGarments(request : Request)
 
 
 
 
 
 # getting all unique search terms in a non nested field
-GET     /getUniqueSearchNonNested        controllers.autocomplete.getUniqueSearchNonNested(request: Request)
+GET     /autoCompleteTitle       controllers.PlayWithElastic.getAutocompleteNonNested(request: Request)
 
 # getting all unique search terms in a nested field
-GET     /getUniqueSearchNested              controllers.autocomplete.getUniqueSearchNested(request : Request)
+GET     /autoCompleteSearchTerms              controllers.PlayWithElastic.getAutocompleteNested(request : Request)
 
 
 
 
 #delete a document with input id
-DELETE      /deleteDocument               controllers.autocomplete.deleteDocument(request : Request)
+DELETE      /deleteDocument               controllers.PlayWithElastic.deleteDocument(request : Request)
 

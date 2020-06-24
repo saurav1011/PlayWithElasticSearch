@@ -1,6 +1,6 @@
 package controllers;
 
-public class DeleteRequest
+public class DeleteRequestBody
 {
     private String elasticId;
 

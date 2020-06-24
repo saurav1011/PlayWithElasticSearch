@@ -2,8 +2,9 @@ package controllers;
 
 public class ResponseBody
 {
-    String isSuccessful;
-    String elasticId;
+    private String isSuccessful;
+    private String elasticId;
+    private String message;
 
 
     public String getIsSuccessful() {
@@ -17,5 +18,11 @@ public class ResponseBody
     }
     public void setElasticId(String elasticId) {
         this.elasticId = elasticId;
+    }
+    public String getMessage() {
+        return message;
+    }
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

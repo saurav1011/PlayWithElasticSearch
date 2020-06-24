@@ -3,7 +3,7 @@ package controllers;
 
 import java.util.List;
 
-public class autocompleteResponse
+public class AutocompleteResponseBody
 {
     private List<String>autoCompleteResults;
 

@@ -2,7 +2,7 @@ package controllers;
 
 import java.util.List;
 
-public class searchProductVO// this is input body
+public class SearchProductVO// this is input body
 {
 
     private String id;

@@ -1,6 +1,6 @@
 package controllers;
 
-public class searchDocRequest {
+public class SearchDocRequestBody {
     private int from;
     private int size;
     private String query;

@@ -1,7 +1,7 @@
 package controllers;
 
 
-public class nestedFields
+public class NestedFields
 {
     private String name;
     public void setName(String name)

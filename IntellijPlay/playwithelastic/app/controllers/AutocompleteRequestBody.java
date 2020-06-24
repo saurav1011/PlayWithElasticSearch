@@ -1,6 +1,6 @@
 package controllers;
 
-public class autocompleteRequest
+public class AutocompleteRequestBody
 {
     private String autoCompleteQuery;
 
