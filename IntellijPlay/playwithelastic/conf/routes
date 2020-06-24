@@ -19,10 +19,10 @@ GET     /getDocument               controllers.PlayWithElastic.getDocument(reque
 
 
 #updating previously existed document.. if not present then inserting it as a new doc
-POST     /updateDocument            controllers.PlayWithElastic.updateDoc(request: Request)
+POST     /updateDocument            controllers.PlayWithElastic.updateDocument(request: Request)
 
 # indexing(inserting) a new doc.. no update
-PUT     /insertDocument                controllers.PlayWithElastic.insertDoc(request:Request)
+PUT     /insertDocument                controllers.PlayWithElastic.insertDocument(request:Request)
 
 
 
@@ -38,7 +38,7 @@ GET     /searchDocument                  controllers.PlayWithElastic.searchDocum
 
 
 # getting all unique search terms in a non nested field
-GET     /autoCompleteTitle       controllers.PlayWithElastic.getAutocompleteNonNested(request: Request)
+GET     /autoCompleteTitle                   controllers.PlayWithElastic.getAutocompleteNonNested(request: Request)
 
 # getting all unique search terms in a nested field
 GET     /autoCompleteSearchTerms              controllers.PlayWithElastic.getAutocompleteNested(request : Request)
