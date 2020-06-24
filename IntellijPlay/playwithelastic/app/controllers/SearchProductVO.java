@@ -230,5 +230,6 @@ public class SearchProductVO// this is input body
     public void setUpdatedTimeInMillis(String updatedTimeInMillis) {
         this.updatedTimeInMillis = updatedTimeInMillis;
     }
+    
 }
 

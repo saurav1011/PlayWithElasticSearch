@@ -28,4 +28,5 @@ public class SearchDocRequestBody {
     public void setQuery(String query) {
         this.query = query;
     }
+    
 }
