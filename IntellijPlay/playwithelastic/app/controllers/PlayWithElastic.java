@@ -99,7 +99,7 @@ public class PlayWithElastic extends Controller {
         ResponseBody responseBody = new ResponseBody();
         responseBody.setIsSuccessful("false");
         responseBody.setMessage("No documents Found! Please try with different keywords");
-        return internalServerError(JsonParserUtils.toJson(responseBody));
+        return ok(JsonParserUtils.toJson(responseBody));
     }
 
 
@@ -231,7 +231,7 @@ public class PlayWithElastic extends Controller {
 
 
     //insertion disabled.
-    public Result updateDoc(Http.Request request) throws IOException
+    public Result updateDocument(Http.Request request) throws IOException
     {
         JsonNode jsonNode = request.body().asJson();
         SearchProductVO productVO = JsonParserUtils.fromJson(jsonNode, SearchProductVO.class);
@@ -275,7 +275,7 @@ public class PlayWithElastic extends Controller {
 
 
 // only for adding new document..(no updates on document)
-    public Result insertDoc(Http.Request request) throws IOException
+    public Result insertDocument(Http.Request request) throws IOException
     {
         JsonNode jsonNode = request.body().asJson();
         SearchProductVO productVO = JsonParserUtils.fromJson(jsonNode, SearchProductVO.class);
