@@ -83,5 +83,20 @@ public class SearchedVariantsVO{
     public void setCompareAtPrice(String compareAtPrice) {
         this.compareAtPrice = compareAtPrice;
     }
+
+    @Override
+    public String toString() {
+        return "SearchedVariantsVO{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", price='" + price + '\'' +
+                ", sku='" + sku + '\'' +
+                ", barcode='" + barcode + '\'' +
+                ", inventoryQuantity=" + inventoryQuantity +
+                ", scannedCount=" + scannedCount +
+                ", metaField='" + metaField + '\'' +
+                ", compareAtPrice='" + compareAtPrice + '\'' +
+                '}';
+    }
 }
 

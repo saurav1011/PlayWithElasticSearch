@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
@@ -17,6 +18,7 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +117,13 @@ public class ElasticSearchInitServiceImpl implements ElasticSearchInitService
 		return highRestClient.delete(deleteRequest, requestOption);
 
 	}
+
+//	@Override
+//	public CreateIndexResponse indices()create(CreateIndexRequest createIndexRequest, RequestOptions requestOption) throws IOException {
+//		return highRestClient.indices().create(createIndexRequest,requestOption);
+
+//	}
+
 
 
 

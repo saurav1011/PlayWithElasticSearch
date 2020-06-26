@@ -10,26 +10,32 @@ GET     /assets/*file                   controllers.Assets.versioned(path="/publ
 
 
 
+
++nocsrf
 # getting all documents
-GET     /getAllDocuments        controllers.PlayWithElastic.getAllDocuments
+POST     /getAllDocuments        controllers.PlayWithElastic.getAllDocuments(request: Request)
 
-# getting a document on accepting id as argument.
-GET     /getDocument               controllers.PlayWithElastic.getDocument(request: Request)
++nocsrf
+# getting a document
+POST     /getDocument               controllers.PlayWithElastic.getDocument(request: Request)
+
++nocsrf
+# getting document for non-nested fields on accepting only query as argument.
+POST     /searchDocument                  controllers.PlayWithElastic.searchDocument(request: Request)
 
 
 
+
++nocsrf
 #updating previously existed document.. if not present then inserting it as a new doc
 POST     /updateDocument            controllers.PlayWithElastic.updateDocument(request: Request)
 
++nocsrf
 # indexing(inserting) a new doc.. no update
 PUT     /insertDocument                controllers.PlayWithElastic.insertDocument(request:Request)
 
 
-
-
-# getting document for non-nested fields on accepting only query as argument.
-GET     /searchDocument                  controllers.PlayWithElastic.searchDocument(request: Request)
-
++nocsrf
 # creating index
 #PUT     /createIndex                controllers.IndexCreater.createIndex.createIndexGarments(request : Request)
 
@@ -37,15 +43,18 @@ GET     /searchDocument                  controllers.PlayWithElastic.searchDocum
 
 
 
-# getting all unique search terms in a non nested field
-GET     /autoCompleteTitle                   controllers.PlayWithElastic.getAutocompleteNonNested(request: Request)
++nocsrf
+# getting all unique search terms in a non nested field(here Title)
+POST     /autoCompleteTitle                   controllers.PlayWithElastic.getAutocompleteNonNested(request: Request)
 
-# getting all unique search terms in a nested field
-GET     /autoCompleteSearchTerms              controllers.PlayWithElastic.getAutocompleteNested(request : Request)
++nocsrf
+# getting all unique search terms in searchTerm field
+POST     /autoCompleteSearchTerms              controllers.PlayWithElastic.getAutocompleteNested(request : Request)
 
 
 
 
++nocsrf
 #delete a document with input id
 DELETE      /deleteDocument               controllers.PlayWithElastic.deleteDocument(request : Request)
 

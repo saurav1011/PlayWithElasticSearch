@@ -9,7 +9,7 @@ public class SearchProductVO// this is input body
     private String title;
     private String searchTerms;
     private String bodyHtml;
-    private String productType;// i have changed the parsed type from ProductType to String.... same with image,sex,realProductType
+    private String productType;// changed return type from ProductType to String.... same with image,sex,realProductType
     private String handle;
     private String published_scope;
     private String tags;
@@ -28,8 +28,8 @@ public class SearchProductVO// this is input body
     private String pngHeroImage;
     private List<Image> pngImages;
     private List<SearchedVariantsVO> variantsVOs;
-    private String matchPercentage;
-    private String updatedTimeInMillis;
+    private float matchPercentage;
+    private long updatedTimeInMillis;
 
     public String getId() {
         return id;
@@ -215,21 +215,51 @@ public class SearchProductVO// this is input body
         this.variantsVOs = variantsVOs;
     }
 
-    public String getMatchPercentage() {
+    public float getMatchPercentage() {
         return matchPercentage;
     }
 
-    public void setMatchPercentage(String matchPercentage) {
+    public void setMatchPercentage(float matchPercentage) {
         this.matchPercentage = matchPercentage;
     }
 
-    public String getUpdatedTimeInMillis() {
+    public long getUpdatedTimeInMillis() {
         return updatedTimeInMillis;
     }
 
-    public void setUpdatedTimeInMillis(String updatedTimeInMillis) {
+    public void setUpdatedTimeInMillis(long updatedTimeInMillis) {
         this.updatedTimeInMillis = updatedTimeInMillis;
     }
-    
+
+    @Override
+    public String toString() {
+        return "SearchProductVO{" +
+                "id='" + id + '\'' +
+                ", title='" + title + '\'' +
+                ", searchTerms='" + searchTerms + '\'' +
+                ", bodyHtml='" + bodyHtml + '\'' +
+                ", productType='" + productType + '\'' +
+                ", handle='" + handle + '\'' +
+                ", published_scope='" + published_scope + '\'' +
+                ", tags='" + tags + '\'' +
+                ", images='" + images + '\'' +
+                ", image='" + image + '\'' +
+                ", realProductType='" + realProductType + '\'' +
+                ", fabric='" + fabric + '\'' +
+                ", collar='" + collar + '\'' +
+                ", fit='" + fit + '\'' +
+                ", color='" + color + '\'' +
+                ", bgColor='" + bgColor + '\'' +
+                ", performance='" + performance + '\'' +
+                ", sleeveLength='" + sleeveLength + '\'' +
+                ", pattern='" + pattern + '\'' +
+                ", gender='" + gender + '\'' +
+                ", pngHeroImage='" + pngHeroImage + '\'' +
+                ", pngImages=" + pngImages +
+                ", variantsVOs=" + variantsVOs +
+                ", matchPercentage=" + matchPercentage +
+                ", updatedTimeInMillis=" + updatedTimeInMillis +
+                '}';
+    }
 }
 

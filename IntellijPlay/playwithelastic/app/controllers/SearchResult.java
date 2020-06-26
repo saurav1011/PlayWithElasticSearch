@@ -1,13 +1,14 @@
 package controllers;
 
+
 import java.util.List;
 
-public class SearchResult {
+public class SearchResult
+{
 
-	private String id;
+	private long id;
 	private String title;
-	private String bodyHtml;
-	private String productType;// i have changed the parsed type from ProductType to String.... same with image,sex,realProductType
+	private String productType;
 	private String handle;
 	private String published_scope;
 	private String tags;
@@ -24,14 +25,18 @@ public class SearchResult {
 	private String pattern;
 	private String gender;
 	private String pngHeroImage;
-	private List<Image> pngImages;
-	private List<SearchedVariantsVO> variantsVOs;
-	private String matchPercentage;
-	private String updatedTimeInMillis;
-	public String getId() {
+	private String pngImages;
+	private String variantsVOs;
+	private float matchPercentage;
+	private long updatedTimeInMillis;
+	private String bodyHtml;
+
+
+
+	public long getId() {
 		return id;
 	}
-	public void setId(String id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getTitle() {
@@ -148,29 +153,29 @@ public class SearchResult {
 	public void setPngHeroImage(String pngHeroImage) {
 		this.pngHeroImage = pngHeroImage;
 	}
-	public List<Image> getPngImages() {
-		return pngImages;
-	}
-	public void setPngImages(List<Image> pngImages) {
-		this.pngImages = pngImages;
-	}
-	public List<SearchedVariantsVO> getVariantsVOs() {
-		return variantsVOs;
-	}
-	public void setVariantsVOs(List<SearchedVariantsVO> variantsVOs) {
-		this.variantsVOs = variantsVOs;
-	}
-	public String getMatchPercentage() {
+	public float getMatchPercentage() {
 		return matchPercentage;
 	}
-	public void setMatchPercentage(String matchPercentage) {
+	public void setMatchPercentage(float matchPercentage) {
 		this.matchPercentage = matchPercentage;
 	}
-	public String getUpdatedTimeInMillis() {
+	public long getUpdatedTimeInMillis() {
 		return updatedTimeInMillis;
 	}
-	public void setUpdatedTimeInMillis(String updatedTimeInMillis) {
+	public void setUpdatedTimeInMillis(long updatedTimeInMillis) {
 		this.updatedTimeInMillis = updatedTimeInMillis;
+	}
+	public String getPngImages() {
+		return pngImages;
+	}
+	public void setPngImages(String pngImages) {
+		this.pngImages = pngImages;
+	}
+	public String getVariantsVOs() {
+		return variantsVOs;
+	}
+	public void setVariantsVOs(String variantsVOs) {
+		this.variantsVOs = variantsVOs;
 	}
 
 

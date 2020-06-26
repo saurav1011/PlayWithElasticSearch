@@ -5,14 +5,14 @@ import java.util.List;
 public class SearchResults {
 	
 	
-	private List<SearchResult> searchResult;
+	private List<SearchResult> searchResults;
 
-	public List<SearchResult> getSearchResult() {
-		return searchResult;
+	public List<SearchResult> getSearchResults() {
+		return searchResults;
 	}
 
-	public void setSearchResult(List<SearchResult> searchResult) {
-		this.searchResult = searchResult;
+	public void setSearchResults(List<SearchResult> searchResults) {
+		this.searchResults = searchResults;
 	}
 
 	

@@ -3,6 +3,8 @@ package controllers;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 
 public class Image
 {
@@ -43,9 +45,9 @@ public class Image
     @SerializedName("src")
     @Expose
     private String src;
-//    @SerializedName("variant_ids")
-//    @Expose
-//    private List<Object> variantIds = null;
+    @SerializedName("variant_ids")
+    @Expose
+    private List<Object> variantIds = null;
 
 
     public Long getId() {
@@ -134,5 +136,31 @@ public class Image
 
     public void setSrc(String src) {
         this.src = src;
+    }
+
+    public List<Object> getVariantIds() {
+        return variantIds;
+    }
+
+    public void setVariantIds(List<Object> variantIds) {
+        this.variantIds = variantIds;
+    }
+
+    @Override
+    public String toString() {
+        return "Image{" +
+                "id=" + id +
+                ", product_id=" + product_id +
+                ", position=" + position +
+                ", created_at='" + created_at + '\'' +
+                ", updated_at='" + updated_at + '\'' +
+                ", width=" + width +
+                ", height=" + height +
+                ", contentWidth=" + contentWidth +
+                ", contentHeight=" + contentHeight +
+                ", contentRatio=" + contentRatio +
+                ", src='" + src + '\'' +
+                ", variantIds=" + variantIds +
+                '}';
     }
 }
