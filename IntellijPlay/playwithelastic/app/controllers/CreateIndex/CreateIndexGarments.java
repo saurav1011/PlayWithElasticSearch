@@ -63,7 +63,7 @@ public class CreateIndexGarments extends PlayWithElastic
         autocomplete1.put("type","edge_ngram");
         autocomplete1.put("min_gram",1);
         autocomplete1.put("max_gram",12);
-        autocomplete1.put("token_char","letter");
+        autocomplete1.put("token_chars","letter");
         tokenizer.put("autocomplete",autocomplete1);
         analysis.put("analyzer",analyzer);
         analysis.put("tokenizer",tokenizer);
@@ -77,8 +77,8 @@ public class CreateIndexGarments extends PlayWithElastic
     public Result createIndex(Http.Request request)
     {
         CreateIndexRequest createIndexRequest =  new CreateIndexRequest("garments");
-        createIndexRequest.settings(Settings.builder().put("index.number_of_shards", 3)
-                .put("index.number_of_replicas", 2));
+        createIndexRequest.settings(Settings.builder().put("index.number_of_shards", 5));
+        //can also set no of replicas.. acc to requirement
         Map<String,Object> settings = setSettings();
         createIndexRequest.settings(settings);
 
