@@ -58,3 +58,9 @@ POST     /autoCompleteSearchTerms              controllers.PlayWithElastic.getAu
 #delete a document with input id
 DELETE      /deleteDocument               controllers.PlayWithElastic.deleteDocument(request : Request)
 
++nocsrf
+#delete a document with input id
+POST      /create/index               controllers.PlayWithElastic.createMappingIndex(request : Request)
+
+
+
