@@ -25,6 +25,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.common.document.DocumentField;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -78,7 +79,7 @@ public class PlayWithElastic extends Controller {
         int from = requestBody.getFrom();
         int size= requestBody.getSize();
         SearchRequest searchRequest =new SearchRequest("garments");
-        QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).defaultOperator(Operator.AND);
+        QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).fuzziness(Fuzziness.AUTO).defaultOperator(Operator.AND);//fuzziness
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchResults searchResultVO = new SearchResults();
         List<SearchResult> searchResultVOList = new LinkedList<SearchResult>();
