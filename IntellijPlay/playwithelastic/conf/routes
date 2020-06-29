@@ -35,9 +35,13 @@ POST     /updateDocument            controllers.PlayWithElastic.updateDocument(r
 PUT     /insertDocument                controllers.PlayWithElastic.insertDocument(request:Request)
 
 
+
 +nocsrf
 # creating index
-#PUT     /createIndex                controllers.IndexCreater.createIndex.createIndexGarments(request : Request)
+PUT     /createIndex                controllers.CreateIndex.CreateIndexGarments.createIndex(request : Request)
+
+#set mapping for new fields
+POST    /setMapping                    controllers.CreateIndex.CreateIndexGarments.setMapping(request : Request)
 
 
 
@@ -57,4 +61,7 @@ POST     /autoCompleteSearchTerms              controllers.PlayWithElastic.getAu
 +nocsrf
 #delete a document with input id
 DELETE      /deleteDocument               controllers.PlayWithElastic.deleteDocument(request : Request)
+
+
+
 

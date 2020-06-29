@@ -39,5 +39,5 @@ public interface ElasticSearchInitService
 	DeleteResponse delete(DeleteRequest deleteRequest, RequestOptions requestOption) throws IOException;
 
 
-//    CreateIndexResponse indices().create(CreateIndexRequest createIndexRequest, RequestOptions requestOptions) throws IOException;
+//    CreateIndexResponse create(CreateIndexRequest createIndexRequest, RequestOptions requestOptions) throws IOException;
 }

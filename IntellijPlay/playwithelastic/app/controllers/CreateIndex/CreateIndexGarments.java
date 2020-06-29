@@ -4,25 +4,32 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.saurav.service.ElasticSearchInitService;
 import com.saurav.utils.JsonParserUtils;
+import com.saurav.vos.IndexMapping;
+import com.saurav.vos.MappingBody;
 import controllers.PlayWithElastic;
 import controllers.ResponseBody;
+import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.mvc.Http;
 import play.mvc.Result;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CreateIndexGarments extends PlayWithElastic
 {
+    private static final Logger logger = LoggerFactory.getLogger(JsonParserUtils.class);
     private ElasticSearchInitService elasticSearchInitService;
-
 
     @Inject
     public CreateIndexGarments(ElasticSearchInitService elasticSearchInitService) {
@@ -30,11 +37,17 @@ public class CreateIndexGarments extends PlayWithElastic
     }
 
 
-    public Result createIndex(Http.Request request)
+    public RestHighLevelClient getClient()
     {
-        CreateIndexRequest createIndexRequest = new CreateIndexRequest("garments");
-        createIndexRequest.settings(Settings.builder().put("index.number_of_shards", 3)
-                .put("index.number_of_replicas", 2));
+        final RestHighLevelClient client = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("localhost", 9200, "http"),
+                        new HttpHost("localhost", 9201, "http")));
+        return client;
+    }
+
+
+    public Map<String,Object> setSettings()
+    {
         Map<String,Object> analysis = new HashMap<>();
         Map<String,Object> analyzer = new HashMap<>();
         Map<String,Object> tokenizer = new HashMap<>();
@@ -47,7 +60,7 @@ public class CreateIndexGarments extends PlayWithElastic
         analyzer.put("autocomplete",autocomplete);
         analyzer.put("autocomplete_search",autocomplete_search);
         Map<String,Object> autocomplete1 = new HashMap<>();
-        autocomplete1.put("type","edge_gram");
+        autocomplete1.put("type","edge_ngram");
         autocomplete1.put("min_gram",1);
         autocomplete1.put("max_gram",12);
         autocomplete1.put("token_char","letter");
@@ -55,71 +68,84 @@ public class CreateIndexGarments extends PlayWithElastic
         analysis.put("analyzer",analyzer);
         analysis.put("tokenizer",tokenizer);
         settings.put("analysis",analysis);
+
+        return settings;
+    }
+
+
+
+    public Result createIndex(Http.Request request)
+    {
+        CreateIndexRequest createIndexRequest =  new CreateIndexRequest("garments");
+        createIndexRequest.settings(Settings.builder().put("index.number_of_shards", 3)
+                .put("index.number_of_replicas", 2));
+        Map<String,Object> settings = setSettings();
         createIndexRequest.settings(settings);
 
 
         JsonNode jsonNode = request.body().asJson();
-        CreateIndexRequestBody requestBody = JsonParserUtils.fromJson(jsonNode,CreateIndexRequestBody.class);
-        Map<String,PropertiesOfMapping> mappings = requestBody.getMappings();
-        PropertiesOfMapping propertiesOfMapping= mappings.get("mappings");
-        Map<String,FieldsOfProperties> properties = propertiesOfMapping.getProperties();
-        createIndexRequest.mapping(properties);
-
-//        FieldsOfProperties fields = properties.get("properties");
-//
-//        Field[] Fields = FieldsOfProperties.class.getDeclaredFields();
-//
-//
-//        Map<String,Object> mappingFields = new HashMap<>();
-//        for (Field map : Fields)
-//        {
-//            try
-//            {
-//                String fieldName = map.getName();
-//                String methodName = "get"+fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-//                Method getNameMethod = fields.getClass().getMethod(methodName);//getFieldName
-//                Object returnValue = getNameMethod.invoke(fields);
-//                if(returnValue!=null)
-//                {
-//                    mappingFields.put(methodName,returnValue);
-//                }
-//
-//            }catch (Exception e) {
-////                System.out.println(e.getMessage());
-//            }
-//        }
-//        Map<String,Object> mappingProperties = new HashMap<>();
-//        mappingProperties.put("properties",mappingFields);
-//
-//        createIndexRequest.mapping(mappingProperties);
-
-
-
-
+        MappingBody requestBody = JsonParserUtils.fromJson(jsonNode, MappingBody.class);
+        IndexMapping mappings = requestBody.getMapping();
+        String mapping = JsonParserUtils.toJson(mappings);
+        createIndexRequest.mapping(mapping, XContentType.JSON);
 
         ResponseBody responseBody = new ResponseBody();
 
+        try {
+            CreateIndexResponse createIndexResponse = getClient().indices().create(createIndexRequest, RequestOptions.DEFAULT);
+            if (createIndexResponse.isAcknowledged()) {
+
+                getClient().close();
+                responseBody.setIsSuccessful("true");
+                responseBody.setMessage("Index with name garments is created Successfully!");
+                return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
+            }
+
+        }
+        catch(ElasticsearchException | IOException e)
+        {
+            responseBody.setIsSuccessful("false");
+            responseBody.setMessage("Input Error, Index not created! "+ e);
+            return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
+        }
+
+        return ok();
+
+    }
+
+
+    //mapping new fields according to the user specification...
+    // (if not specified .. automatically(dynamically)mapped while inserting new document)
+    public Result setMapping(Http.Request request)
+    {
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest("garments");
+        JsonNode jsonNode = request.body().asJson();
+//        NewMappingBody requestBody = JsonParserUtils.fromJson(jsonNode, NewMappingBody.class);
+//        NewIndexMapping mappings = requestBody.getMapping();
+//        String mapping = JsonParserUtils.toJson(mappings);
+//        createIndexRequest.mapping(mapping, XContentType.JSON);
+//
+//        ResponseBody responseBody = new ResponseBody();
+//
 //        try {
-//            CreateIndexResponse createIndexResponse = elasticSearchInitService.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+//            CreateIndexResponse createIndexResponse = getClient().indices().create(createIndexRequest, RequestOptions.DEFAULT);
 //            if (createIndexResponse.isAcknowledged()) {
+//
+//                getClient().close();
 //                responseBody.setIsSuccessful("true");
 //                responseBody.setMessage("Index with name garments is created Successfully!");
 //                return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
 //            }
 //
 //        }
-//        catch(ElasticsearchException)
+//        catch(ElasticsearchException | IOException e)
 //        {
 //            responseBody.setIsSuccessful("false");
-//            responseBody.setMessage("Input Error, Index not created!");
+//            responseBody.setMessage("Input Error, Index not created! "+ e);
 //            return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
 //        }
-
-
-
         return ok();
 
     }
-
 
 }

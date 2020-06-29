@@ -1,15 +1,10 @@
 package controllers;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.*;
 
-
-import com.google.gson.reflect.TypeToken;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
@@ -24,7 +19,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -49,8 +43,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.saurav.service.ElasticSearchInitService;
 import com.saurav.utils.JsonParserUtils;
-
-import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -79,7 +71,7 @@ public class PlayWithElastic extends Controller {
         int from = requestBody.getFrom();
         int size= requestBody.getSize();
         SearchRequest searchRequest =new SearchRequest("garments");
-        QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).fuzziness(Fuzziness.AUTO).defaultOperator(Operator.AND);//fuzziness
+        QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).fuzziness(Fuzziness.AUTO).defaultOperator(Operator.AND);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchResults searchResultVO = new SearchResults();
         List<SearchResult> searchResultVOList = new LinkedList<SearchResult>();
@@ -218,7 +210,7 @@ public class PlayWithElastic extends Controller {
                     jsonMap.put(fieldName,returnValue);
                 }
             } catch (Exception e) {
-//                System.out.println(e.getMessage());
+                System.out.println(e.getMessage());
             }
         }
         return jsonMap;
@@ -257,13 +249,13 @@ public class PlayWithElastic extends Controller {
                 responseBody.setMessage("Document with id: " + id +  " is upto date hence No Operation on the document");
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
-        } catch (IOException e)
+        } catch (ElasticsearchException e)
         {
             responseBody.setIsSuccessful("false");
             responseBody.setMessage("No Document found with id: " + id );
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
         }
-        return ok("Syntax Error");
+        return ok("Error");
 
     }
     
@@ -303,7 +295,7 @@ public class PlayWithElastic extends Controller {
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
         }
-        return ok("Syntax Error");
+        return ok("Error");
     }
 
 
@@ -345,12 +337,14 @@ public class PlayWithElastic extends Controller {
             List<String> autocompleteResults = termBucketToList(terms);
             responseBody.setAutoCompleteResults(autocompleteResults);
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
-        } catch (IOException e)
+        } catch (ElasticsearchException | IOException e)
         {
             e.printStackTrace();
+            return internalServerError("Error: "+e).as(Http.MimeTypes.JSON);
         }
-        return internalServerError("Internal Server Error!").as(Http.MimeTypes.JSON);
+
     }
+
 
 
     //nested fields are indexed as separate documents under their parent documents.
@@ -380,9 +374,9 @@ public class PlayWithElastic extends Controller {
             List<String> autocompleteResults = termBucketToList(terms);
             responseBody.setAutoCompleteResults(autocompleteResults);
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
-        } catch (IOException e) {
+        } catch (ElasticsearchException | IOException e) {
             e.printStackTrace();
-            return internalServerError("Internal Server Error!").as(Http.MimeTypes.JSON);
+            return internalServerError("Error: "+e).as(Http.MimeTypes.JSON);
         }
     }
 
@@ -411,5 +405,7 @@ public class PlayWithElastic extends Controller {
         responseBody.setMessage("No Document found with id: " + id );
         return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
     }
+
+
 
 }

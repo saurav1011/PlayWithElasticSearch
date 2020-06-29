@@ -119,9 +119,9 @@ public class ElasticSearchInitServiceImpl implements ElasticSearchInitService
 	}
 
 //	@Override
-//	public CreateIndexResponse indices()create(CreateIndexRequest createIndexRequest, RequestOptions requestOption) throws IOException {
+//	public CreateIndexResponse create(CreateIndexRequest createIndexRequest, RequestOptions requestOption) throws IOException {
 //		return highRestClient.indices().create(createIndexRequest,requestOption);
-
+//
 //	}
 
 
