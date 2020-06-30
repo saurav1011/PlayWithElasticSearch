@@ -85,6 +85,18 @@ public class IndexProperties {
 	@Expose
 	private UpdatedTimeInMillis updatedTimeInMillis;
 
+//	@SerializedName("address")
+//	@Expose
+//	private Address address;
+//
+//	public Address getAddress() {
+//		return address;
+//	}
+//
+//	public void setAddress(Address address) {
+//		this.address = address;
+//	}
+
 	public Id getId() {
 		return id;
 	}

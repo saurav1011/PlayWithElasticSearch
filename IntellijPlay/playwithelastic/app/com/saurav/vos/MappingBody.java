@@ -5,15 +5,30 @@ import com.google.gson.annotations.SerializedName;
 
 public class MappingBody
 {
+    @SerializedName("index")
+    @Expose
+    private String index;
+
+
     @SerializedName("mappings")
     @Expose
     private IndexMapping mappings;
 
-    public IndexMapping getMapping() {
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
+    }
+
+    public IndexMapping getMappings() {
         return mappings;
     }
 
-    public void setMapping(IndexMapping mappings) {
+    public void setMappings(IndexMapping mappings) {
         this.mappings = mappings;
     }
+
 }

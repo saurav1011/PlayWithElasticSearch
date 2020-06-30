@@ -37,12 +37,16 @@ PUT     /insertDocument                controllers.PlayWithElastic.insertDocumen
 
 
 +nocsrf
-# creating index
-PUT     /createIndex                controllers.CreateIndex.CreateIndexGarments.createIndex(request : Request)
+# creating an index
+PUT     /createIndex                controllers.IndexOps.IndexOperations.createIndex(request : Request)
 
-#set mapping for new fields
-POST    /setMapping                    controllers.CreateIndex.CreateIndexGarments.setMapping(request : Request)
++nocsrf
+#set mapping for new fields in an index
+POST    /setMapping                    controllers.IndexOps.IndexOperations.setMapping(request : Request)
 
++nocsrf
+#delete an index
+DELETE   /deleteIndex                  controllers.IndexOps.IndexOperations.deleteIndex(request : Request)
 
 
 

@@ -4,6 +4,7 @@ import java.util.List;
 
 public class SearchProductVO// this is input body
 {
+    private String index ;
 
     private String id;
     private String title;
@@ -30,6 +31,15 @@ public class SearchProductVO// this is input body
     private List<SearchedVariantsVO> variantsVOs;
     private float matchPercentage;
     private long updatedTimeInMillis;
+
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
+    }
 
     public String getId() {
         return id;

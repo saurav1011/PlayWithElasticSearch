@@ -67,11 +67,12 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         SearchDocRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, SearchDocRequestBody.class);
+        String index = requestBody.getIndex();
         String query = requestBody.getQuery();
         int from = requestBody.getFrom();
         int size= requestBody.getSize();
-        SearchRequest searchRequest =new SearchRequest("garments");
-        QueryStringQueryBuilder queryBuilders =QueryBuilders.queryStringQuery(query).fuzziness(Fuzziness.AUTO).defaultOperator(Operator.AND);
+        SearchRequest searchRequest =new SearchRequest(index);
+        QueryStringQueryBuilder queryBuilders = QueryBuilders.queryStringQuery(query).fuzziness(Fuzziness.AUTO).defaultOperator(Operator.AND);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchResults searchResultVO = new SearchResults();
         List<SearchResult> searchResultVOList = new LinkedList<SearchResult>();
@@ -103,11 +104,12 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         GetAllDocumentsRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, GetAllDocumentsRequestBody.class);
+        String index = requestBody.getIndex();
         int from = requestBody.getFrom();
         int size = requestBody.getSize();
         SearchResults searchResultVO = new SearchResults();
         List<SearchResult> searchResultVOList = new LinkedList<SearchResult>();
-        SearchRequest searchRequest = new SearchRequest("garments");
+        SearchRequest searchRequest = new SearchRequest(index);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder queryBuilder= QueryBuilders.matchAllQuery();
         searchSourceBuilder.query(queryBuilder).from(from*size).size(size);
@@ -133,8 +135,9 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         GetDocumentRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, controllers.GetDocumentRequestBody.class);
+        String index= requestBody.getIndex();
         String id = requestBody.getElasticId();
-        GetRequest getRequest = new GetRequest("garments",id);
+        GetRequest getRequest = new GetRequest(index,id);
         GetResponse getResponse = elasticSearchInitService.get(getRequest,RequestOptions.DEFAULT);
         ResponseBody responseBody = new ResponseBody();
         if(getResponse.getSourceAsString()!=null)
@@ -145,7 +148,7 @@ public class PlayWithElastic extends Controller {
         }
         responseBody.setIsSuccessful("false");
         responseBody.setElasticId("id");
-        responseBody.setMessage("No Document found with id: " + id );
+        responseBody.setMessage("No Document found with id: " + id + " in index: "+ index);
         return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
     }
 
@@ -207,6 +210,10 @@ public class PlayWithElastic extends Controller {
                         jsonMap.put(fieldName,listToJson);
                         continue;
                     }
+                    else if(fieldName.equals("index"))
+                    {
+                        continue;
+                    }
                     jsonMap.put(fieldName,returnValue);
                 }
             } catch (Exception e) {
@@ -226,9 +233,10 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         SearchProductVO productVO = JsonParserUtils.fromJson(jsonNode, SearchProductVO.class);
+        String index = productVO.getIndex();
         String id= productVO.getId();
         Map<String,Object> jsonMap= productToMap(productVO);
-        UpdateRequest updateRequest = new UpdateRequest("garments",id);
+        UpdateRequest updateRequest = new UpdateRequest(index,id);
         updateRequest.doc(jsonMap).docAsUpsert(false);
         logger.info("Object ", productVO);
         ResponseBody responseBody = new ResponseBody();
@@ -240,19 +248,19 @@ public class PlayWithElastic extends Controller {
             if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED)
             {
                 responseBody.setIsSuccessful("true");
-                responseBody.setMessage("Document with id: "+ id + " updated successfully!");
+                responseBody.setMessage("Document with id: "+ id + " in index: "+ index + " updated successfully!" );
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
             else if (updateResponse.getResult() == DocWriteResponse.Result.NOOP)//Handle the case where the document was not impacted by the update,
             {
                 responseBody.setIsSuccessful("false");
-                responseBody.setMessage("Document with id: " + id +  " is upto date hence No Operation on the document");
+                responseBody.setMessage("Document with id: " + id + " in index: " + index +  " is upto date hence No Operation on the document");
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
         } catch (ElasticsearchException e)
         {
             responseBody.setIsSuccessful("false");
-            responseBody.setMessage("No Document found with id: " + id );
+            responseBody.setMessage("No Document found with id: " + id + " in index: "+ index );
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
         }
         return ok("Error");
@@ -270,9 +278,10 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         SearchProductVO productVO = JsonParserUtils.fromJson(jsonNode, SearchProductVO.class);
+        String index = productVO.getIndex();
         String id= productVO.getId();
         Map<String,Object> jsonMap= productToMap(productVO);
-        IndexRequest indexRequest =new IndexRequest("garments");
+        IndexRequest indexRequest =new IndexRequest(index);
         indexRequest.id(id).source(jsonMap).opType(DocWriteRequest.OpType.CREATE);
         logger.info("Object ", productVO);
         ResponseBody responseBody = new ResponseBody();
@@ -283,7 +292,7 @@ public class PlayWithElastic extends Controller {
             if (indexResponse.getResult() == DocWriteResponse.Result.CREATED)
             {
                 responseBody.setIsSuccessful("true");
-                responseBody.setMessage("Document with id: "+ id + " inserted successfully!");
+                responseBody.setMessage("Document with id: " + id + " in index: "+ index + " inserted successfully!");
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
         } catch (ElasticsearchException e)
@@ -291,7 +300,7 @@ public class PlayWithElastic extends Controller {
             if (e.status() == RestStatus.CONFLICT)
             {
                 responseBody.setIsSuccessful("false");
-                responseBody.setMessage("Already existing document with id: " + id );
+                responseBody.setMessage("Already existing document with id: " + id + " in index: "+ index);
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
         }
@@ -320,9 +329,10 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         AutocompleteRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, AutocompleteRequestBody.class);
+        String index = requestBody.getIndex();
         String query = requestBody.getAutoCompleteQuery();
         String field = "title";
-        SearchRequest searchRequest = new SearchRequest("garments");
+        SearchRequest searchRequest = new SearchRequest(index);
         QueryBuilder queryBuilder = QueryBuilders.matchQuery(field,query).operator(Operator.AND);
         TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms("Terms_Aggregation").field(field.concat(".keyword")).size(100);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -340,7 +350,7 @@ public class PlayWithElastic extends Controller {
         } catch (ElasticsearchException | IOException e)
         {
             e.printStackTrace();
-            return internalServerError("Error: "+e).as(Http.MimeTypes.JSON);
+            return internalServerError("Error: "+e.getMessage()).as(Http.MimeTypes.JSON);
         }
 
     }
@@ -352,9 +362,10 @@ public class PlayWithElastic extends Controller {
     {
         JsonNode jsonNode = request.body().asJson();
         AutocompleteRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, AutocompleteRequestBody.class);
+        String index = requestBody.getIndex();
         String query = requestBody.getAutoCompleteQuery();
         String field = "searchTerms";
-        SearchRequest searchRequest =new SearchRequest("garments");
+        SearchRequest searchRequest =new SearchRequest(index);
         NestedAggregationBuilder nestedAggregationBuilder = AggregationBuilders.nested("Terms_Searching",field).
                 subAggregation(AggregationBuilders.
                         filter("select_filter",QueryBuilders.matchQuery(field.concat(".name"),query).operator(Operator.AND)).
@@ -376,7 +387,7 @@ public class PlayWithElastic extends Controller {
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
         } catch (ElasticsearchException | IOException e) {
             e.printStackTrace();
-            return internalServerError("Error: "+e).as(Http.MimeTypes.JSON);
+            return internalServerError("Error: "+e.getMessage()).as(Http.MimeTypes.JSON);
         }
     }
 
@@ -389,20 +400,22 @@ public class PlayWithElastic extends Controller {
     public Result deleteDocument(Http.Request request) throws IOException
     {
         JsonNode jsonNode = request.body().asJson();
-        DeleteRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, DeleteRequestBody.class);
+        DeleteDocRequestBody requestBody = JsonParserUtils.fromJson(jsonNode, DeleteDocRequestBody.class);
+        String index= requestBody.getIndex();
         String id = requestBody.getElasticId();
-        DeleteRequest deleteRequest = new DeleteRequest("garments",id);
+
+        DeleteRequest deleteRequest = new DeleteRequest(index,id);
         DeleteResponse deleteResponse = elasticSearchInitService.delete(deleteRequest,RequestOptions.DEFAULT);
         ResponseBody responseBody = new ResponseBody();
         responseBody.setElasticId(id);
         if(deleteResponse.getResult()==DocWriteResponse.Result.DELETED)
         {
             responseBody.setIsSuccessful("true");
-            responseBody.setMessage("Deleted Successfully!");
+            responseBody.setMessage("Document with id: "+id + " in index: "+ index + " deleted Successfully!");
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
         }
         responseBody.setIsSuccessful("false");
-        responseBody.setMessage("No Document found with id: " + id );
+        responseBody.setMessage("No Document found with id: " + id + " in index: "+ index);
         return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
     }
 
