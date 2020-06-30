@@ -9,6 +9,9 @@ scalaVersion := "2.13.2"
 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.3.1"
 
+// https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+libraryDependencies += "org.apache.commons" % "commons-collections4" % "4.1"
+
 libraryDependencies += guice
 
 libraryDependencies += "org.elasticsearch" % "elasticsearch" % "7.7.0" //high level rest client

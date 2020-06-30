@@ -1,39 +1,43 @@
 package controllers.CreateIndex;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.PutMappingRequest;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.saurav.service.ElasticSearchInitService;
 import com.saurav.utils.JsonParserUtils;
 import com.saurav.vos.IndexMapping;
 import com.saurav.vos.MappingBody;
-import controllers.PlayWithElastic;
+
 import controllers.ResponseBody;
-import org.apache.http.HttpHost;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.indices.CreateIndexResponse;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-public class CreateIndexGarments extends PlayWithElastic
+public class CreateIndexGarments extends Controller
 {
     private static final Logger logger = LoggerFactory.getLogger(JsonParserUtils.class);
     private ElasticSearchInitService elasticSearchInitService;
 
     @Inject
     public CreateIndexGarments(ElasticSearchInitService elasticSearchInitService) {
-        super(elasticSearchInitService);
+    	this.elasticSearchInitService = elasticSearchInitService;
     }
 
 
@@ -118,32 +122,30 @@ public class CreateIndexGarments extends PlayWithElastic
     // (if not specified .. automatically(dynamically)mapped while inserting new document)
     public Result setMapping(Http.Request request)
     {
-        CreateIndexRequest createIndexRequest = new CreateIndexRequest("garments");
+        PutMappingRequest createIndexRequest = new PutMappingRequest("garments");
         JsonNode jsonNode = request.body().asJson();
-//        NewMappingBody requestBody = JsonParserUtils.fromJson(jsonNode, NewMappingBody.class);
-//        NewIndexMapping mappings = requestBody.getMapping();
-//        String mapping = JsonParserUtils.toJson(mappings);
-//        createIndexRequest.mapping(mapping, XContentType.JSON);
-//
-//        ResponseBody responseBody = new ResponseBody();
-//
-//        try {
-//            CreateIndexResponse createIndexResponse = getClient().indices().create(createIndexRequest, RequestOptions.DEFAULT);
-//            if (createIndexResponse.isAcknowledged()) {
-//
-//                getClient().close();
-//                responseBody.setIsSuccessful("true");
-//                responseBody.setMessage("Index with name garments is created Successfully!");
-//                return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
-//            }
-//
-//        }
-//        catch(ElasticsearchException | IOException e)
-//        {
-//            responseBody.setIsSuccessful("false");
-//            responseBody.setMessage("Input Error, Index not created! "+ e);
-//            return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
-//        }
+        MappingBody requestBody = JsonParserUtils.fromJson(jsonNode, MappingBody.class);
+        String mapping = JsonParserUtils.toJson(requestBody);
+        createIndexRequest.source(mapping, XContentType.JSON);
+
+        ResponseBody responseBody = new ResponseBody();
+
+        try {
+            AcknowledgedResponse createIndexResponse = getClient().indices().putMapping(createIndexRequest, RequestOptions.DEFAULT);
+            if (createIndexResponse.isAcknowledged()) {
+                getClient().close();
+                responseBody.setIsSuccessful("true");
+                responseBody.setMessage("Index with name garments is created Successfully!");
+                return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
+            }
+
+        }
+        catch(ElasticsearchException | IOException e)
+        {
+            responseBody.setIsSuccessful("false");
+            responseBody.setMessage("Input Error, Index not created! "+ e.getMessage());
+            return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
+        }
         return ok();
 
     }

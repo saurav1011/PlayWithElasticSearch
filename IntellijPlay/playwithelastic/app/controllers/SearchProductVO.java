@@ -30,7 +30,6 @@ public class SearchProductVO// this is input body
     private List<SearchedVariantsVO> variantsVOs;
     private float matchPercentage;
     private long updatedTimeInMillis;
-
     public String getId() {
         return id;
     }
@@ -231,7 +230,7 @@ public class SearchProductVO// this is input body
         this.updatedTimeInMillis = updatedTimeInMillis;
     }
 
-    @Override
+	@Override
     public String toString() {
         return "SearchProductVO{" +
                 "id='" + id + '\'' +

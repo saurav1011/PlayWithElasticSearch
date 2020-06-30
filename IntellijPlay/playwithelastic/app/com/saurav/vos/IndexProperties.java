@@ -84,6 +84,10 @@ public class IndexProperties {
 	@SerializedName("updatedTimeInMillis")
 	@Expose
 	private UpdatedTimeInMillis updatedTimeInMillis;
+	
+	@SerializedName("updatedTimeIn")
+	@Expose
+	private UpdatedTimeIn updatedTimeIn;
 
 	public Id getId() {
 		return id;
@@ -291,6 +295,14 @@ public class IndexProperties {
 
 	public void setUpdatedTimeInMillis(UpdatedTimeInMillis updatedTimeInMillis) {
 		this.updatedTimeInMillis = updatedTimeInMillis;
+	}
+
+	public UpdatedTimeIn getUpdatedTimeIn() {
+		return updatedTimeIn;
+	}
+
+	public void setUpdatedTimeIn(UpdatedTimeIn updatedTimeIn) {
+		this.updatedTimeIn = updatedTimeIn;
 	}
 
 }
