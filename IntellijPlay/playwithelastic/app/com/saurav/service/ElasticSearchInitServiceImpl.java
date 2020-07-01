@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
@@ -13,13 +13,16 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.PutMappingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,13 +121,26 @@ public class ElasticSearchInitServiceImpl implements ElasticSearchInitService
 
 	}
 
-//	@Override
-//	public CreateIndexResponse create(CreateIndexRequest createIndexRequest, RequestOptions requestOption) throws IOException {
-//		return highRestClient.indices().create(createIndexRequest,requestOption);
-//
-//	}
+
+	@Override
+	public CreateIndexResponse create(CreateIndexRequest createIndexRequest, RequestOptions requestOption) throws IOException {
+		return highRestClient.indices().create(createIndexRequest,requestOption);
+
+	}
 
 
+	@Override
+	public AcknowledgedResponse putMapping(PutMappingRequest mappingRequest, RequestOptions requestOptions) throws IOException{
+		return  highRestClient.indices().putMapping(mappingRequest,requestOptions);
+
+	}
+
+
+	@Override
+	public AcknowledgedResponse delete(DeleteIndexRequest deleteIndexRequest,RequestOptions requestOptions) throws  IOException{
+		return highRestClient.indices().delete(deleteIndexRequest,requestOptions);
+
+	}
 
 
 }

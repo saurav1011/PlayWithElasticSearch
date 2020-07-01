@@ -7,18 +7,15 @@ import com.saurav.utils.JsonParserUtils;
 import com.saurav.vos.IndexMapping;
 import com.saurav.vos.MappingBody;
 import controllers.ResponseBody;
-import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.mvc.Http;
@@ -41,14 +38,6 @@ public class IndexOperations extends Controller
         this.elasticSearchInitService = elasticSearchInitService;
     }
 
-
-    public RestHighLevelClient getClient()
-    {
-        final RestHighLevelClient client = new RestHighLevelClient(
-                RestClient.builder(new HttpHost("localhost", 9200, "http"),
-                        new HttpHost("localhost", 9201, "http")));
-        return client;
-    }
 
 
     public Map<String,Object> setSettings()
@@ -99,12 +88,11 @@ public class IndexOperations extends Controller
         ResponseBody responseBody = new ResponseBody();
 
         try {
-            CreateIndexResponse createIndexResponse = getClient().indices().create(createIndexRequest, RequestOptions.DEFAULT);
+            CreateIndexResponse createIndexResponse = elasticSearchInitService.create(createIndexRequest, RequestOptions.DEFAULT);
             if (createIndexResponse.isAcknowledged()) {
 
-                getClient().close();
                 responseBody.setIsSuccessful("true");
-                responseBody.setMessage("Index with name "+ index+ " is created Successfully!");
+                responseBody.setMessage("Index with name: "+ index+ " is created Successfully!");
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
 
@@ -138,10 +126,9 @@ public class IndexOperations extends Controller
         ResponseBody responseBody = new ResponseBody();
 
         try {
-            AcknowledgedResponse putMappingResponse = getClient().indices().putMapping(mappingRequest, RequestOptions.DEFAULT);
+            AcknowledgedResponse putMappingResponse = elasticSearchInitService.putMapping(mappingRequest, RequestOptions.DEFAULT);
             if (putMappingResponse.isAcknowledged()) {
 
-                getClient().close();
                 responseBody.setIsSuccessful("true");
                 responseBody.setMessage("Mappings updated successfully in index: "+ index);
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
@@ -170,10 +157,10 @@ public class IndexOperations extends Controller
         ResponseBody responseBody = new ResponseBody();
         try
         {
-            AcknowledgedResponse deleteIndexResponse = getClient().indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+
+            AcknowledgedResponse deleteIndexResponse = elasticSearchInitService.delete(deleteIndexRequest, RequestOptions.DEFAULT);
             if (deleteIndexResponse.isAcknowledged())
             {
-                getClient().close();
                 responseBody.setIsSuccessful("true");
                 responseBody.setMessage("Index: "+ index+" deleted Successfully!");
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
