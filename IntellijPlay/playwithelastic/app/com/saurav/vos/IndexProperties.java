@@ -305,4 +305,5 @@ public class IndexProperties {
 		this.updatedTimeInMillis = updatedTimeInMillis;
 	}
 
+
 }

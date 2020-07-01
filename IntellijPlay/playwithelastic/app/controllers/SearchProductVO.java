@@ -2,7 +2,7 @@ package controllers;
 
 import java.util.List;
 
-public class SearchProductVO// this is input body
+public class SearchProductVO// input body
 {
     private String index ;
 
@@ -33,6 +33,7 @@ public class SearchProductVO// this is input body
     private long updatedTimeInMillis;
 
 
+
     public String getIndex() {
         return index;
     }
@@ -40,6 +41,7 @@ public class SearchProductVO// this is input body
     public void setIndex(String index) {
         this.index = index;
     }
+
 
     public String getId() {
         return id;
@@ -241,7 +243,7 @@ public class SearchProductVO// this is input body
         this.updatedTimeInMillis = updatedTimeInMillis;
     }
 
-    @Override
+	@Override
     public String toString() {
         return "SearchProductVO{" +
                 "id='" + id + '\'' +

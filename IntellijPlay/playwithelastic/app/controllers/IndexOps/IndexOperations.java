@@ -7,24 +7,25 @@ import com.saurav.utils.JsonParserUtils;
 import com.saurav.vos.IndexMapping;
 import com.saurav.vos.MappingBody;
 import controllers.ResponseBody;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import play.mvc.Http;
-import play.mvc.Result;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.RequestOptions;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
 
 
 public class IndexOperations extends Controller
@@ -37,6 +38,8 @@ public class IndexOperations extends Controller
     {
         this.elasticSearchInitService = elasticSearchInitService;
     }
+
+
 
 
 
@@ -87,10 +90,11 @@ public class IndexOperations extends Controller
 
         ResponseBody responseBody = new ResponseBody();
 
-        try {
+        try
+        {
             CreateIndexResponse createIndexResponse = elasticSearchInitService.create(createIndexRequest, RequestOptions.DEFAULT);
-            if (createIndexResponse.isAcknowledged()) {
-
+            if (createIndexResponse.isAcknowledged())
+            {
                 responseBody.setIsSuccessful("true");
                 responseBody.setMessage("Index with name: "+ index+ " is created Successfully!");
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
@@ -108,8 +112,9 @@ public class IndexOperations extends Controller
     }
 
 
-    //mapping new fields according to the user specification...
-    // (if not specified .. automatically(dynamically)mapped while inserting new document)
+
+
+    //mapping new fields according to the user specification
     public Result setMapping(Http.Request request)
     {
 
@@ -122,29 +127,30 @@ public class IndexOperations extends Controller
 
         PutMappingRequest mappingRequest = new PutMappingRequest(index);
         mappingRequest.source(mapping, XContentType.JSON);
-
         ResponseBody responseBody = new ResponseBody();
 
-        try {
+        try
+        {
             AcknowledgedResponse putMappingResponse = elasticSearchInitService.putMapping(mappingRequest, RequestOptions.DEFAULT);
-            if (putMappingResponse.isAcknowledged()) {
-
+            if (putMappingResponse.isAcknowledged())
+            {
                 responseBody.setIsSuccessful("true");
                 responseBody.setMessage("Mappings updated successfully in index: "+ index);
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
 
-        }
-        catch(ElasticsearchException | IOException e) {
+        }catch(ElasticsearchException | IOException e)
+        {
             e.printStackTrace();
             responseBody.setIsSuccessful("false");
             responseBody.setMessage("Error! "+ e.getMessage());
             return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
         }
-
         return ok();
 
     }
+
+
 
 
     public Result deleteIndex(Http.Request request)
@@ -166,7 +172,8 @@ public class IndexOperations extends Controller
                 return ok(JsonParserUtils.toJson(responseBody)).as(Http.MimeTypes.JSON);
             }
 
-        } catch (ElasticsearchException | IOException e) {
+        } catch (ElasticsearchException | IOException e)
+        {
             e.printStackTrace();
             responseBody.setIsSuccessful("false");
             responseBody.setMessage("Error! "+ e.getMessage());
